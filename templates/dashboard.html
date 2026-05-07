@@ -1,0 +1,939 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dashboard – Trip Planner</title>
+
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@300;400;500;600;700;800;900&family=Sora:wght@400;600;700;800&display=swap" rel="stylesheet" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+  <style>
+    :root {
+      --teal:        #17b8b0;
+      --teal-lt:     #e6f9f8;
+      --teal-mid:    #12968f;
+      --teal-pale:   #f0fdfc;
+      --teal-dark:   #0d7a74;
+      --accent:      #ff7e5f;
+      --text:        #1e3a3a;
+      --muted:       #5a8080;
+      --bg:          #f7fffe;
+      --white:       #ffffff;
+      --border:      #d4efed;
+      --card-bg:     rgba(255, 255, 255, 0.78);
+      --card-border: rgba(23, 184, 176, 0.18);
+      --shadow:      rgba(23, 184, 176, 0.12);
+      --shadow-md:   rgba(23, 184, 176, 0.18);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      min-height: 100vh;
+      background: var(--bg);
+      font-family: 'Nunito', sans-serif;
+      font-size: 15px;
+      color: var(--text);
+      overflow-x: hidden;
+    }
+
+    /* Subtle radial bg tints */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background:
+        radial-gradient(ellipse 70% 50% at 0% 0%,   rgba(23,184,176,0.08) 0%, transparent 60%),
+        radial-gradient(ellipse 60% 60% at 100% 100%, rgba(23,184,176,0.06) 0%, transparent 60%),
+        radial-gradient(ellipse 50% 40% at 50% 50%,  rgba(240,253,252,0.5) 0%, transparent 70%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .content-wrap { position: relative; z-index: 1; }
+
+    /* ── NAV ── */
+    .dash-nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 32px;
+      border-bottom: 1px solid var(--border);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(255, 255, 255, 0.88);
+      box-shadow: 0 2px 16px var(--shadow);
+    }
+    .nav-logo {
+      font-family: 'Sora', sans-serif;
+      font-size: 1.2rem;
+      font-weight: 800;
+      color: var(--teal);
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .nav-logo-dot {
+      width: 28px; height: 28px;
+      border-radius: 8px;
+      background: var(--teal);
+      display: flex; align-items: center; justify-content: center;
+      color: white;
+      font-size: 0.8rem;
+    }
+    .nav-actions { display: flex; align-items: center; gap: 10px; }
+    .nav-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 20px;
+      border-radius: 100px;
+      font-size: 0.85rem;
+      font-weight: 700;
+      font-family: 'Nunito', sans-serif;
+      cursor: pointer;
+      text-decoration: none;
+      transition: transform 0.2s, box-shadow 0.2s, background 0.2s;
+      border: none;
+      letter-spacing: 0.03em;
+    }
+    .nav-btn-outline {
+      background: var(--teal-lt);
+      border: 1.5px solid var(--border);
+      color: var(--teal-mid);
+    }
+    .nav-btn-outline:hover { border-color: var(--teal); background: var(--teal-lt); color: var(--teal); }
+    .nav-btn-primary {
+      background: linear-gradient(135deg, var(--teal), var(--teal-mid));
+      color: #fff;
+      box-shadow: 0 4px 16px var(--shadow-md);
+    }
+    .nav-btn-primary:hover { color: #fff; transform: translateY(-1px); box-shadow: 0 8px 24px var(--shadow-md); }
+
+    /* ── WELCOME HERO ── */
+    .welcome-hero {
+      padding: 40px 0 28px;
+      text-align: center;
+    }
+    .welcome-eyebrow {
+      font-size: 11px;
+      letter-spacing: 4px;
+      text-transform: uppercase;
+      color: var(--teal);
+      font-weight: 700;
+      margin-bottom: 10px;
+    }
+    .welcome-title {
+      font-family: 'Sora', sans-serif;
+      font-size: clamp(1.8rem, 4vw, 2.6rem);
+      font-weight: 800;
+      color: var(--text);
+      margin-bottom: 8px;
+      line-height: 1.15;
+    }
+    .welcome-title span { color: var(--teal); }
+    .welcome-sub { font-size: 14px; color: var(--muted); font-weight: 500; }
+
+    /* ── STAT PILLS ── */
+    .stats-row {
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin: 22px 0 0;
+    }
+    .stat-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      padding: 8px 18px;
+      border-radius: 100px;
+      border: 1.5px solid var(--border);
+      background: rgba(255,255,255,0.8);
+      backdrop-filter: blur(8px);
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text);
+      box-shadow: 0 2px 8px var(--shadow);
+    }
+    .stat-pill i { color: var(--teal); font-size: 14px; }
+    .stat-pill strong { color: var(--teal-mid); }
+
+    /* ── SECTION CARD ── */
+    .section-card {
+      background: var(--card-bg);
+      border: 1.5px solid var(--card-border);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border-radius: 20px;
+      padding: 26px 28px;
+      margin-bottom: 18px;
+      box-shadow: 0 4px 24px var(--shadow);
+      animation: fadeUp 0.5s ease both;
+    }
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .section-card:nth-child(1) { animation-delay: 0.05s; }
+    .section-card:nth-child(2) { animation-delay: 0.12s; }
+    .section-card:nth-child(3) { animation-delay: 0.19s; }
+    .section-card:nth-child(4) { animation-delay: 0.26s; }
+    .section-card:nth-child(5) { animation-delay: 0.33s; }
+    .section-card:nth-child(6) { animation-delay: 0.40s; }
+    .section-card:nth-child(7) { animation-delay: 0.47s; }
+
+    .section-label {
+      font-size: 10px;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: var(--teal);
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+    .section-heading {
+      font-family: 'Sora', sans-serif;
+      font-size: 1.2rem;
+      font-weight: 800;
+      color: var(--text);
+      margin-bottom: 18px;
+    }
+    .fancy-divider {
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--border), transparent);
+      margin: 8px 0 20px;
+    }
+
+    /* ── ANALYTICS STAT CARDS ── */
+    .analytics-stats {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+      margin-bottom: 22px;
+    }
+    .analytics-stat-card {
+      background: var(--teal-lt);
+      border: 1.5px solid var(--border);
+      border-radius: 16px;
+      padding: 18px 14px;
+      text-align: center;
+      transition: border-color 0.2s, transform 0.2s, box-shadow 0.2s;
+    }
+    .analytics-stat-card:hover {
+      border-color: var(--teal);
+      transform: translateY(-3px);
+      box-shadow: 0 8px 24px var(--shadow-md);
+    }
+    .analytics-stat-card .stat-icon {
+      font-size: 22px;
+      margin-bottom: 6px;
+      display: block;
+    }
+    .analytics-stat-card h3 {
+      font-family: 'Sora', sans-serif;
+      font-size: 1.65rem;
+      font-weight: 800;
+      color: var(--teal-mid);
+      margin-bottom: 3px;
+      line-height: 1;
+    }
+    .analytics-stat-card p {
+      font-size: 11px;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin: 0;
+      font-weight: 600;
+    }
+
+    /* ── CHART CONTAINERS ── */
+    .charts-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+    .chart-box {
+      background: rgba(255,255,255,0.65);
+      border: 1.5px solid var(--border);
+      border-radius: 16px;
+      padding: 18px 14px;
+    }
+    .chart-box h5 {
+      font-size: 11px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--muted);
+      font-weight: 700;
+      text-align: center;
+      margin-bottom: 14px;
+    }
+    .chart-box canvas { max-height: 200px; }
+
+    /* ── LAST TRIP CARD ── */
+    .trip-highlight {
+      background: linear-gradient(135deg, rgba(23,184,176,0.08), rgba(18,150,143,0.06));
+      border: 1.5px solid rgba(23,184,176,0.3);
+      border-radius: 16px;
+      padding: 20px 22px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 14px;
+    }
+    .trip-highlight-info h3 {
+      font-family: 'Sora', sans-serif;
+      font-size: 1.35rem;
+      font-weight: 800;
+      color: var(--text);
+      margin-bottom: 6px;
+    }
+    .trip-meta-tags { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 6px; }
+    .meta-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      background: rgba(255,255,255,0.8);
+      border: 1.5px solid var(--border);
+      border-radius: 100px;
+      padding: 4px 12px;
+      font-size: 12px;
+      color: var(--text);
+      font-weight: 600;
+    }
+    .meta-tag i { color: var(--teal); font-size: 12px; }
+    .btn-plan-again {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 11px 26px;
+      border-radius: 100px;
+      background: linear-gradient(135deg, var(--teal), var(--teal-mid));
+      color: #fff;
+      font-family: 'Nunito', sans-serif;
+      font-weight: 800;
+      font-size: 14px;
+      border: none;
+      text-decoration: none;
+      box-shadow: 0 6px 20px var(--shadow-md);
+      transition: transform 0.2s, box-shadow 0.2s;
+      white-space: nowrap;
+    }
+    .btn-plan-again:hover { color: #fff; transform: translateY(-2px); box-shadow: 0 10px 28px var(--shadow-md); }
+
+    /* ── TRIP HISTORY ── */
+    .history-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 0;
+      border-bottom: 1px solid var(--border);
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .history-item:last-child { border-bottom: none; padding-bottom: 0; }
+    .history-num {
+      width: 30px; height: 30px;
+      border-radius: 50%;
+      background: var(--teal-lt);
+      border: 1.5px solid var(--border);
+      color: var(--teal-mid);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 12px; font-weight: 800;
+      font-family: 'Sora', sans-serif;
+      flex-shrink: 0;
+    }
+    .history-city { font-weight: 700; font-size: 15px; color: var(--text); flex: 1; }
+    .history-details { display: flex; gap: 8px; flex-wrap: wrap; }
+    .history-badge {
+      font-size: 11px;
+      background: var(--teal-lt);
+      border: 1px solid var(--border);
+      border-radius: 100px;
+      padding: 3px 10px;
+      color: var(--muted);
+      font-weight: 600;
+    }
+
+    /* ── QUICK ACTIONS ── */
+    .quick-actions {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 12px;
+    }
+    .qa-card {
+      background: rgba(255,255,255,0.7);
+      border: 1.5px solid var(--border);
+      border-radius: 16px;
+      padding: 18px 14px;
+      text-align: center;
+      text-decoration: none;
+      color: var(--text);
+      transition: border-color 0.2s, transform 0.2s, background 0.2s, box-shadow 0.2s;
+      cursor: pointer;
+    }
+    .qa-card:hover {
+      border-color: var(--teal);
+      background: var(--teal-lt);
+      transform: translateY(-3px);
+      color: var(--text);
+      box-shadow: 0 8px 24px var(--shadow);
+    }
+    .qa-icon { font-size: 26px; margin-bottom: 8px; display: block; }
+    .qa-label { font-size: 13px; font-weight: 700; color: var(--text); }
+    .qa-sub { font-size: 11px; color: var(--muted); margin-top: 3px; font-weight: 500; }
+
+    /* ── PROFILE ── */
+    .profile-row { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+    .avatar {
+      width: 52px; height: 52px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--teal), var(--teal-mid));
+      display: flex; align-items: center; justify-content: center;
+      font-size: 20px; font-weight: 800;
+      font-family: 'Sora', sans-serif;
+      color: white;
+      flex-shrink: 0;
+      box-shadow: 0 4px 16px var(--shadow-md);
+    }
+    .profile-info h4 { font-weight: 700; font-size: 17px; color: var(--text); margin-bottom: 2px; }
+    .profile-info p  { font-size: 13px; color: var(--muted); font-weight: 500; }
+
+    /* ── FEEDBACK ── */
+    .star-group {
+      display: flex; gap: 8px;
+      justify-content: center;
+      margin-bottom: 14px;
+      flex-direction: row-reverse;
+    }
+    .star-group input[type="radio"] { display: none; }
+    .star-group label {
+      font-size: 34px;
+      cursor: pointer;
+      color: var(--border);
+      transition: color 0.15s, transform 0.15s;
+      line-height: 1;
+      user-select: none;
+    }
+    .star-group label:hover,
+    .star-group label:hover ~ label,
+    .star-group input[type="radio"]:checked ~ label { color: var(--teal); }
+    .star-group label:hover { transform: scale(1.2); }
+
+    .fb-input {
+      background: rgba(255,255,255,0.7) !important;
+      border: 1.5px solid var(--border) !important;
+      border-radius: 14px !important;
+      color: var(--text) !important;
+      padding: 12px 14px !important;
+      font-family: 'Nunito', sans-serif !important;
+      font-size: 14px !important;
+      resize: none;
+      width: 100%;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .fb-input::placeholder { color: #9ab8b4 !important; }
+    .fb-input:focus {
+      outline: none !important;
+      border-color: var(--teal) !important;
+      box-shadow: 0 0 0 3px rgba(23,184,176,0.12) !important;
+      background: #fff !important;
+    }
+
+    .rating-text {
+      font-size: 13px;
+      color: var(--muted);
+      text-align: center;
+      margin-bottom: 14px;
+      min-height: 18px;
+      font-weight: 600;
+    }
+
+    .btn-feedback {
+      width: 100%;
+      padding: 12px;
+      border-radius: 100px;
+      border: none;
+      font-family: 'Nunito', sans-serif;
+      font-weight: 800;
+      font-size: 15px;
+      background: linear-gradient(135deg, var(--teal), var(--teal-mid));
+      color: #fff;
+      box-shadow: 0 6px 24px var(--shadow-md);
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+      transition: transform 0.2s, box-shadow 0.2s, opacity 0.2s;
+      letter-spacing: 0.03em;
+    }
+    .btn-feedback:hover { transform: translateY(-2px); box-shadow: 0 10px 32px var(--shadow-md); }
+    .btn-feedback:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+
+    .fb-success {
+      display: none; align-items: center; gap: 10px;
+      background: var(--teal-lt);
+      border: 1.5px solid var(--border);
+      border-radius: 14px;
+      padding: 12px 16px;
+      color: var(--teal-mid);
+      font-size: 14px; font-weight: 600;
+      margin-top: 12px;
+    }
+    .fb-success.show { display: flex; }
+    .fb-success i { font-size: 20px; flex-shrink: 0; color: var(--teal); }
+
+    /* ── PAST FEEDBACKS ── */
+    .feedback-item {
+      padding: 12px 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .feedback-item:last-child { border-bottom: none; }
+    .feedback-stars { color: var(--teal); letter-spacing: 1px; margin-bottom: 3px; font-size: 14px; }
+    .feedback-city { font-weight: 700; font-size: 14px; color: var(--text); margin-bottom: 3px; }
+    .feedback-comment { font-size: 13px; color: var(--muted); font-style: italic; }
+
+    /* ── EMPTY STATE ── */
+    .empty-state {
+      text-align: center;
+      padding: 28px 0;
+      color: var(--muted);
+      font-size: 14px;
+      font-weight: 500;
+    }
+    .empty-state i { font-size: 34px; display: block; margin-bottom: 10px; color: var(--border); }
+    .empty-state a { color: var(--teal); text-decoration: none; font-weight: 700; }
+    .empty-state a:hover { text-decoration: underline; }
+
+    /* ── NO TRIP WARNING ── */
+    .no-trip-alert {
+      background: var(--teal-lt);
+      border: 1.5px solid var(--border);
+      border-radius: 14px;
+      padding: 13px 16px;
+      font-size: 14px;
+      color: var(--teal-mid);
+      font-weight: 600;
+      display: flex; align-items: center; gap: 10px;
+    }
+    .no-trip-alert i { color: var(--teal); }
+
+    /* ── FOOTER ── */
+    .footer-note {
+      text-align: center;
+      font-size: 12px;
+      color: var(--muted);
+      padding: 20px 0 44px;
+      font-weight: 500;
+    }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 768px) {
+      .analytics-stats { grid-template-columns: 1fr 1fr !important; }
+      .charts-grid     { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 576px) {
+      .dash-nav        { padding: 14px 18px; }
+      .section-card    { padding: 18px 14px; }
+      .trip-highlight  { flex-direction: column; }
+      .welcome-hero    { padding: 28px 0 18px; }
+      .analytics-stats { grid-template-columns: 1fr 1fr !important; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="content-wrap">
+
+  <!-- NAV -->
+  <nav class="dash-nav">
+    <a href="/" class="nav-logo">
+      <div class="nav-logo-dot"><i class="bi bi-send-fill"></i></div>
+      AI Trip Planner
+    </a>
+    <div class="nav-actions">
+      <a href="/planner" class="nav-btn nav-btn-primary">
+        <i class="bi bi-plus-lg"></i> New Trip
+      </a>
+      <a href="/logout" class="nav-btn nav-btn-outline">
+        <i class="bi bi-box-arrow-right"></i> Logout
+      </a>
+    </div>
+  </nav>
+
+  <div class="container" style="max-width: 860px; padding-top: 10px; padding-bottom: 20px;">
+
+    <!-- WELCOME HERO -->
+    <div class="welcome-hero">
+      <p class="welcome-eyebrow"><i class="bi bi-stars"></i> &nbsp;Your Travel Hub</p>
+      <h1 class="welcome-title">Welcome back, <span>{{ user_name }}!</span> 👋</h1>
+      <p class="welcome-sub">Here's an overview of your trips, analytics and activity.</p>
+
+      <div class="stats-row">
+        <span class="stat-pill">
+          <i class="bi bi-map-fill"></i>
+          <strong>{{ trip_history | length }}</strong> trip{{ 's' if trip_history | length != 1 else '' }} planned
+        </span>
+        {% if last_trip %}
+        <span class="stat-pill">
+          <i class="bi bi-geo-alt-fill"></i>
+          Last: <strong>{{ last_trip.city }}</strong>
+        </span>
+        {% endif %}
+        <span class="stat-pill">
+          <i class="bi bi-shield-check-fill"></i>
+          Account active
+        </span>
+      </div>
+    </div>
+
+    <!-- LAST TRIP -->
+    {% if last_trip %}
+    <div class="section-card">
+      <p class="section-label">Most Recent</p>
+      <h2 class="section-heading">
+        <i class="bi bi-bookmark-star-fill me-2" style="color:var(--teal)"></i>Last Trip Plan
+      </h2>
+      <div class="fancy-divider"></div>
+
+      <div class="trip-highlight">
+        <div class="trip-highlight-info">
+          <h3>✈ {{ last_trip.city }}</h3>
+          <div class="trip-meta-tags">
+            <span class="meta-tag"><i class="bi bi-calendar3"></i> {{ last_trip.days }} Days</span>
+            <span class="meta-tag"><i class="bi bi-currency-rupee"></i> ₹{{ last_trip.budget }} Budget</span>
+            <span class="meta-tag"><i class="bi bi-people-fill"></i> {{ last_trip.people }} People</span>
+            <span class="meta-tag"><i class="bi bi-person-fill"></i> ₹{{ last_trip.per_person }} / person</span>
+            <span class="meta-tag">
+              <i class="bi bi-wallet2"></i>
+              {{ last_trip.budget_type | capitalize }} budget
+            </span>
+          </div>
+        </div>
+        <a href="/planner" class="btn-plan-again">
+          <i class="bi bi-arrow-repeat"></i> Plan Again
+        </a>
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- TRAVEL ANALYTICS -->
+    <div class="section-card">
+      <p class="section-label">Insights</p>
+      <h2 class="section-heading">
+        <i class="bi bi-graph-up-arrow me-2" style="color:var(--teal)"></i>Travel Analytics
+        <span style="font-size:11px; font-weight:600; color:var(--muted); margin-left:8px;">(Platform-wide)</span>
+      </h2>
+      <div class="fancy-divider"></div>
+
+      <div class="analytics-stats">
+        <div class="analytics-stat-card">
+          <span class="stat-icon">👥</span>
+          <h3>{{ total_users }}</h3>
+          <p>Registered Users</p>
+        </div>
+        <div class="analytics-stat-card">
+          <span class="stat-icon">🗺️</span>
+          <h3>{{ total_trips }}</h3>
+          <p>Total Trips</p>
+        </div>
+        <div class="analytics-stat-card">
+          <span class="stat-icon">📍</span>
+          <h3 id="topDestination" style="font-size:1.05rem;">—</h3>
+          <p>Top Destination</p>
+        </div>
+        <div class="analytics-stat-card">
+          <span class="stat-icon">⭐</span>
+          <h3 id="avgRating">—</h3>
+          <p>Avg. Rating</p>
+        </div>
+      </div>
+
+      {% if destinations %}
+      <div class="charts-grid">
+        <div class="chart-box">
+          <h5><i class="bi bi-bar-chart-fill me-1"></i> Trips per Destination</h5>
+          <canvas id="destChart"></canvas>
+        </div>
+        <div class="chart-box">
+          <h5><i class="bi bi-pie-chart-fill me-1"></i> Ratings Distribution</h5>
+          <canvas id="ratingChart"></canvas>
+        </div>
+      </div>
+      {% else %}
+      <div class="empty-state">
+        <i class="bi bi-bar-chart"></i>
+        No trips planned yet on the platform. <a href="/planner">Be the first!</a>
+      </div>
+      {% endif %}
+    </div>
+
+    <!-- QUICK ACTIONS -->
+    <div class="section-card">
+      <p class="section-label">Navigate</p>
+      <h2 class="section-heading">
+        <i class="bi bi-lightning-charge-fill me-2" style="color:var(--teal)"></i>Quick Actions
+      </h2>
+      <div class="fancy-divider"></div>
+
+      <div class="quick-actions">
+        <a href="/planner" class="qa-card">
+          <span class="qa-icon">🗺️</span>
+          <div class="qa-label">Plan New Trip</div>
+          <div class="qa-sub">Enter destination & budget</div>
+        </a>
+        <a href="/" class="qa-card">
+          <span class="qa-icon">🏠</span>
+          <div class="qa-label">Home</div>
+          <div class="qa-sub">Back to landing page</div>
+        </a>
+        <a href="/logout" class="qa-card">
+          <span class="qa-icon">👋</span>
+          <div class="qa-label">Logout</div>
+          <div class="qa-sub">Sign out safely</div>
+        </a>
+      </div>
+    </div>
+
+    <!-- TRIP HISTORY -->
+    <div class="section-card">
+      <p class="section-label">All Trips</p>
+      <h2 class="section-heading">
+        <i class="bi bi-clock-history me-2" style="color:var(--teal)"></i>Trip History
+      </h2>
+      <div class="fancy-divider"></div>
+
+      {% if trip_history %}
+        {% for trip in trip_history %}
+        <div class="history-item">
+          <div class="history-num">{{ loop.index }}</div>
+          <div class="history-city">{{ trip.city }}</div>
+          <div class="history-details">
+            <span class="history-badge"><i class="bi bi-calendar3"></i> {{ trip.days }}d</span>
+            <span class="history-badge">₹{{ trip.budget }}</span>
+            <span class="history-badge"><i class="bi bi-people-fill"></i> {{ trip.people }}</span>
+            <span class="history-badge">{{ trip.budget_type | capitalize }}</span>
+          </div>
+        </div>
+        {% endfor %}
+      {% else %}
+        <div class="empty-state">
+          <i class="bi bi-map"></i>
+          No trips planned yet. <a href="/planner">Plan your first trip!</a>
+        </div>
+      {% endif %}
+    </div>
+
+    <!-- FEEDBACK FORM -->
+    <div class="section-card">
+      <p class="section-label">Your Experience</p>
+      <h2 class="section-heading">
+        <i class="bi bi-chat-heart-fill me-2" style="color:var(--teal)"></i>Rate Your Last Trip Plan
+      </h2>
+      <div class="fancy-divider"></div>
+
+      {% if last_trip %}
+      <form action="/feedback" method="POST" id="feedbackForm">
+        <p style="text-align:center; font-size:13px; color:var(--muted); margin-bottom:10px; font-weight:500;">
+          How would you rate the plan for <strong style="color:var(--text)">{{ last_trip.city }}</strong>?
+        </p>
+        <div class="star-group" id="starGroup">
+          <input type="radio" name="rating" id="s5" value="5" /><label for="s5" title="Excellent">★</label>
+          <input type="radio" name="rating" id="s4" value="4" /><label for="s4" title="Good">★</label>
+          <input type="radio" name="rating" id="s3" value="3" /><label for="s3" title="Average">★</label>
+          <input type="radio" name="rating" id="s2" value="2" /><label for="s2" title="Poor">★</label>
+          <input type="radio" name="rating" id="s1" value="1" /><label for="s1" title="Terrible">★</label>
+        </div>
+        <p class="rating-text" id="ratingText">Tap a star to rate</p>
+        <div class="mb-3">
+          <textarea
+            name="comment"
+            class="fb-input"
+            rows="3"
+            placeholder="Share your thoughts — what could be better? (optional)"
+          ></textarea>
+        </div>
+        <button type="submit" class="btn-feedback" id="fbBtn">
+          <i class="bi bi-send-fill"></i>
+          <span id="fbBtnText">Submit Feedback</span>
+        </button>
+        <div class="fb-success" id="fbSuccess">
+          <i class="bi bi-check-circle-fill"></i>
+          Thanks for your feedback! It helps us improve. 🙏
+        </div>
+      </form>
+      {% else %}
+      <div class="no-trip-alert">
+        <i class="bi bi-info-circle-fill"></i>
+        Plan a trip first to leave feedback.
+        <a href="/planner" style="color:var(--teal-mid); font-weight:700; margin-left:4px;">Plan now →</a>
+      </div>
+      {% endif %}
+    </div>
+
+    <!-- PAST FEEDBACKS -->
+    {% if feedbacks %}
+    <div class="section-card">
+      <p class="section-label">Your Reviews</p>
+      <h2 class="section-heading">
+        <i class="bi bi-star-fill me-2" style="color:var(--teal)"></i>Past Feedback
+      </h2>
+      <div class="fancy-divider"></div>
+
+      {% for fb in feedbacks %}
+      <div class="feedback-item">
+        <div class="feedback-stars">
+          {% for i in range(fb.rating | int) %}★{% endfor %}{% for i in range(5 - fb.rating | int) %}☆{% endfor %}
+          <span style="color:var(--muted); font-size:11px; margin-left:6px;">({{ fb.rating }}/5)</span>
+        </div>
+        <div class="feedback-city">✈ {{ fb.city }}</div>
+        {% if fb.comment %}
+        <div class="feedback-comment">"{{ fb.comment }}"</div>
+        {% endif %}
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- PROFILE -->
+    <div class="section-card">
+      <p class="section-label">Account</p>
+      <h2 class="section-heading">
+        <i class="bi bi-person-circle me-2" style="color:var(--teal)"></i>Your Profile
+      </h2>
+      <div class="fancy-divider"></div>
+
+      <div class="profile-row">
+        <div class="avatar">{{ user_name[0] | upper }}</div>
+        <div class="profile-info">
+          <h4>{{ user_name }}</h4>
+          <p>{{ user_email }}</p>
+        </div>
+      </div>
+    </div>
+
+    <p class="footer-note">AI Trip Planner &copy; 2025 &nbsp;·&nbsp; Made with ❤️ by SAY</p>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+  const destinations  = JSON.parse('{{ destinations | tojson | safe }}');
+  const counts        = JSON.parse('{{ counts | tojson | safe }}');
+  const ratingLabels  = JSON.parse('{{ rating_labels | tojson | safe }}');
+  const ratingCounts  = JSON.parse('{{ rating_counts | tojson | safe }}');
+
+  if (counts.length > 0) {
+    const maxIdx = counts.indexOf(Math.max(...counts));
+    document.getElementById("topDestination").innerText = destinations[maxIdx] || "—";
+  }
+
+  const totalRatings = ratingCounts.reduce((a, b) => a + b, 0);
+  if (totalRatings > 0) {
+    let weighted = 0;
+    for (let i = 0; i < ratingLabels.length; i++) {
+      weighted += parseInt(ratingLabels[i]) * ratingCounts[i];
+    }
+    document.getElementById("avgRating").innerText = (weighted / totalRatings).toFixed(1);
+  }
+
+  Chart.defaults.color = "#5a8080";
+  Chart.defaults.font.family = "'Nunito', sans-serif";
+
+  const destCtx = document.getElementById("destChart");
+  if (destCtx && destinations.length > 0) {
+    new Chart(destCtx, {
+      type: "bar",
+      data: {
+        labels: destinations,
+        datasets: [{
+          label: "Trips",
+          data: counts,
+          backgroundColor: "rgba(23,184,176,0.55)",
+          borderColor: "#17b8b0",
+          borderWidth: 1,
+          borderRadius: 8,
+        }]
+      },
+      options: {
+        plugins: { legend: { display: false } },
+        scales: {
+          x: { grid: { color: "rgba(23,184,176,0.08)" }, ticks: { maxRotation: 30, color: "#5a8080" } },
+          y: { grid: { color: "rgba(23,184,176,0.08)" }, ticks: { stepSize: 1, color: "#5a8080" } }
+        }
+      }
+    });
+  }
+
+  const ratingCtx = document.getElementById("ratingChart");
+  if (ratingCtx && totalRatings > 0) {
+    new Chart(ratingCtx, {
+      type: "doughnut",
+      data: {
+        labels: ratingLabels.map(r => `${r} Star${r != 1 ? 's' : ''}`),
+        datasets: [{
+          data: ratingCounts,
+          backgroundColor: ["#17b8b0", "#12968f", "#0d7a74", "#7ffff4", "#d4efed"],
+          borderColor: "rgba(247,255,254,0.9)",
+          borderWidth: 3,
+        }]
+      },
+      options: {
+        plugins: {
+          legend: { position: "bottom", labels: { padding: 12, boxWidth: 12, font: { size: 12 }, color: "#5a8080" } }
+        },
+        cutout: "65%",
+      }
+    });
+  }
+
+  const ratingLabelMap = {
+    1: "😞 Terrible — needs a lot of work",
+    2: "😐 Poor — quite a few issues",
+    3: "🙂 Average — decent but improvable",
+    4: "😊 Good — mostly satisfied",
+    5: "🤩 Excellent — loved it!",
+  };
+  document.querySelectorAll('.star-group input[type="radio"]').forEach((radio) => {
+    radio.addEventListener("change", () => {
+      const txt = document.getElementById("ratingText");
+      txt.textContent = ratingLabelMap[radio.value] || "";
+      txt.style.color = "#17b8b0";
+    });
+  });
+
+  const feedbackForm = document.getElementById("feedbackForm");
+  if (feedbackForm) {
+    feedbackForm.addEventListener("submit", function (e) {
+      const rating = this.querySelector('input[name="rating"]:checked');
+      if (!rating) {
+        e.preventDefault();
+        const txt = document.getElementById("ratingText");
+        txt.textContent = "⚠️ Please select a star rating first.";
+        txt.style.color = "#dc2626";
+        return;
+      }
+      const btn  = document.getElementById("fbBtn");
+      const span = document.getElementById("fbBtnText");
+      btn.disabled = true;
+      span.textContent = "Submitting…";
+      e.preventDefault();
+      fetch("/feedback", { method: "POST", body: new FormData(this) })
+        .then(() => {
+          btn.style.display = "none";
+          document.getElementById("fbSuccess").classList.add("show");
+        })
+        .catch(() => {
+          btn.style.display = "none";
+          document.getElementById("fbSuccess").classList.add("show");
+        });
+    });
+  }
+</script>
+</body>
+</html>

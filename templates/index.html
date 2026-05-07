@@ -1,0 +1,1268 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0" />
+    <title>AI Trip Planner — Explore India Smarter</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Nunito:wght@300;400;500;600;700;800;900&family=Sora:wght@400;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"
+      rel="stylesheet"
+    />
+
+    <style>
+      :root {
+        --teal: #17b8b0;
+        --teal-lt: #e6f9f8;
+        --teal-mid: #12968f;
+        --teal-pale: #f0fdfc;
+        --sky: #e0f7f6;
+        --accent: #ff7e5f;
+        --text: #1e3a3a;
+        --muted: #5a8080;
+        --white: #ffffff;
+        --bg: #f7fffe;
+        --card-bg: #ffffff;
+        --border: #d4efed;
+        --shadow: rgba(23, 184, 176, 0.12);
+
+        --space-xs: 0.5rem;
+        --space-sm: 1rem;
+        --space-md: 1.5rem;
+        --space-lg: 2.5rem;
+        --space-xl: 4rem;
+      }
+
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      html {
+        scroll-behavior: smooth;
+        -webkit-text-size-adjust: 100%;
+        text-size-adjust: 100%;
+      }
+      body {
+        font-family: "Nunito", sans-serif;
+        background: var(--bg);
+        color: var(--text);
+        overflow-x: hidden;
+        line-height: 1.6;
+      }
+
+      /* ── NAVBAR ─────────────────────────────────────────── */
+      #navbar {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        z-index: 999;
+        background: transparent;
+        padding: 1.125rem 0;
+        transition:
+          background 0.35s,
+          box-shadow 0.35s,
+          padding 0.35s;
+      }
+      #navbar.scrolled {
+        background: rgba(255, 255, 255, 0.92);
+        backdrop-filter: blur(12px);
+        box-shadow: 0 2px 20px rgba(0, 0, 0, 0.07);
+        padding: 0.75rem 0;
+      }
+      .brand {
+        font-family: "Sora", sans-serif;
+        font-size: clamp(1rem, 2vw, 1.25rem);
+        font-weight: 700;
+        color: var(--white) !important;
+        text-decoration: none;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+      }
+      #navbar.scrolled .brand {
+        color: var(--teal) !important;
+      }
+      .brand-dot {
+        width: 1.75rem;
+        height: 1.75rem;
+        border-radius: 0.5rem;
+        background: var(--teal);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 0.8rem;
+        flex-shrink: 0;
+      }
+      #navbar.scrolled .brand-dot {
+        background: var(--teal);
+      }
+
+      .navbar-nav .nav-link {
+        font-size: 0.85rem;
+        font-weight: 600;
+        letter-spacing: 0.04em;
+        color: rgba(255, 255, 255, 0.88) !important;
+        padding: 0.375rem 1rem !important;
+        position: relative;
+        transition: color 0.25s;
+      }
+      #navbar.scrolled .navbar-nav .nav-link {
+        color: var(--text) !important;
+      }
+      .navbar-nav .nav-link::after {
+        content: "";
+        position: absolute;
+        bottom: 2px;
+        left: 1rem;
+        right: 1rem;
+        height: 2px;
+        background: var(--teal);
+        border-radius: 2px;
+        transform: scaleX(0);
+        transition: transform 0.25s;
+      }
+      .navbar-nav .nav-link:hover::after {
+        transform: scaleX(1);
+      }
+      .navbar-nav .nav-link:hover {
+        color: var(--teal) !important;
+      }
+      .navbar-toggler {
+        border: none;
+        filter: invert(1);
+      }
+      #navbar.scrolled .navbar-toggler {
+        filter: none;
+      }
+      #hero {
+        /* Use dynamic viewport height where supported, then innerHeight JS var,
+           then plain vh as final fallback */
+        min-height: 100dvh;
+        min-height: var(--hero-min-h, 100vh);
+        background:
+          linear-gradient(
+            135deg,
+            rgba(10, 50, 50, 0.62) 0%,
+            rgba(10, 50, 50, 0.38) 55%,
+            rgba(10, 50, 50, 0.15) 100%
+          ),
+          url("https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=1600&q=80")
+            center/cover no-repeat;
+        /* Section is a column-flex so hero-inner can stretch without
+           doubling the height */
+        display: flex;
+        flex-direction: column;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .hero-inner {
+        /* flex:1 makes this fill all available vertical space in the section */
+        flex: 1;
+        display: flex;
+        align-items: center;
+        /* Top padding clears the fixed navbar; bottom adds breathing room */
+        padding-top: clamp(5rem, 10vh, 7rem);
+        padding-bottom: clamp(3rem, 6vh, 5rem);
+        width: 100%;
+      }
+
+      /* The Bootstrap row inside hero-inner — NO height utilities here */
+      .hero-row {
+        width: 100%;
+        align-items: center;
+      }
+
+      .hero-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4375rem;
+        background: rgba(255, 255, 255, 0.15);
+        backdrop-filter: blur(8px);
+        border: 1px solid rgba(255, 255, 255, 0.25);
+        color: rgba(255, 255, 255, 0.9);
+        font-size: 0.75rem;
+        font-weight: 600;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        padding: 0.375rem 1rem;
+        border-radius: 1.875rem;
+        margin-bottom: 1.25rem;
+        animation: fadeUp 0.6s ease 0.1s both;
+      }
+      .badge-dot {
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        background: #4dffed;
+        animation: pulse 2s ease-in-out infinite;
+        flex-shrink: 0;
+      }
+      @keyframes pulse {
+        0%, 100% { opacity: 1; }
+        50%       { opacity: 0.3; }
+      }
+
+      .hero-heading {
+        font-family: "Sora", sans-serif;
+        font-size: clamp(1.9rem, 4.5vw, 4rem);
+        font-weight: 800;
+        line-height: 1.1;
+        color: var(--white);
+        animation: fadeUp 0.7s ease 0.2s both;
+      }
+      .hero-heading .line2 {
+        color: #7ffff4;
+      }
+      .hero-sub {
+        font-size: clamp(0.9rem, 1.5vw, 1.05rem);
+        font-weight: 400;
+        color: rgba(255, 255, 255, 0.75);
+        max-width: 27.5rem;
+        line-height: 1.75;
+        margin: 1.125rem 0 2rem;
+        animation: fadeUp 0.8s ease 0.3s both;
+      }
+      .btn-hero {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        background: var(--teal);
+        color: white !important;
+        font-size: 0.88rem;
+        font-weight: 700;
+        text-decoration: none;
+        padding: 0.875rem 2.125rem;
+        border-radius: 3.125rem;
+        transition:
+          background 0.3s,
+          transform 0.3s,
+          box-shadow 0.3s;
+        box-shadow: 0 6px 24px rgba(23, 184, 176, 0.4);
+        animation: fadeUp 0.9s ease 0.4s both;
+        white-space: nowrap;
+      }
+      .btn-hero:hover {
+        background: var(--teal-mid);
+        transform: translateY(-2px);
+        box-shadow: 0 10px 32px rgba(23, 184, 176, 0.5);
+      }
+
+      .hero-stats {
+        display: flex;
+        flex-wrap: wrap;
+        gap: clamp(1rem, 3vw, 1.75rem);
+        margin-top: 2.5rem;
+        animation: fadeUp 1s ease 0.55s both;
+      }
+      .hs-item .hs-num {
+        font-family: "Sora", sans-serif;
+        font-size: clamp(1.2rem, 2.5vw, 1.7rem);
+        font-weight: 800;
+        color: white;
+        line-height: 1;
+      }
+      .hs-item .hs-num span {
+        color: #7ffff4;
+      }
+      .hs-item .hs-lbl {
+        font-size: 0.7rem;
+        font-weight: 500;
+        color: rgba(255, 255, 255, 0.55);
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        margin-top: 2px;
+        white-space: nowrap;
+      }
+      .hs-sep {
+        width: 1px;
+        background: rgba(255, 255, 255, 0.18);
+        align-self: stretch;
+      }
+
+      /* ── HERO TRAVEL CARDS ───────────────────────────────── */
+      .travel-cards-wrap {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: clamp(0.625rem, 2vw, 0.875rem);
+        animation: fadeUp 0.9s ease 0.45s both;
+      }
+      .tc {
+        background: rgba(255, 255, 255, 0.12);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.22);
+        border-radius: 1.125rem;
+        padding: clamp(0.875rem, 2.5vw, 1.375rem) clamp(0.75rem, 2vw, 1.125rem);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.625rem;
+        text-align: center;
+        cursor: default;
+        transition:
+          background 0.3s,
+          transform 0.3s;
+      }
+      .tc:hover {
+        background: rgba(255, 255, 255, 0.2);
+        transform: translateY(-4px);
+      }
+      .tc-icon {
+        width: 2.875rem;
+        height: 2.875rem;
+        border-radius: 0.75rem;
+        background: rgba(255, 255, 255, 0.2);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.3rem;
+        color: #7ffff4;
+        flex-shrink: 0;
+      }
+      .tc-name {
+        font-size: 0.8rem;
+        font-weight: 700;
+        color: white;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+      }
+
+      /* Scroll indicator */
+      .scroll-down {
+        position: absolute;
+        bottom: 1.75rem;
+        left: 50%;
+        transform: translateX(-50%);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.375rem;
+        color: rgba(255, 255, 255, 0.45);
+        font-size: 0.65rem;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        animation: scrollBounce 2s ease-in-out infinite;
+        pointer-events: none;
+      }
+      @keyframes scrollBounce {
+        0%, 100% { transform: translateX(-50%) translateY(0); }
+        50%       { transform: translateX(-50%) translateY(5px); }
+      }
+
+      /* ── SHARED SECTION STYLES ───────────────────────────── */
+      section {
+        padding: clamp(3.5rem, 8vh, 5.625rem) 0;
+      }
+
+      .section-label {
+        display: inline-block;
+        font-size: 0.72rem;
+        font-weight: 700;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+        color: var(--teal);
+        margin-bottom: 0.625rem;
+      }
+      .section-title {
+        font-family: "Sora", sans-serif;
+        font-size: clamp(1.6rem, 3vw, 2.6rem);
+        font-weight: 800;
+        color: var(--text);
+        line-height: 1.2;
+      }
+      .section-title span {
+        color: var(--teal);
+      }
+      .section-desc {
+        font-size: clamp(0.875rem, 1.2vw, 0.97rem);
+        color: var(--muted);
+        line-height: 1.8;
+        margin-top: 0.625rem;
+        max-width: 32.5rem;
+      }
+
+      /* ── FEATURES ────────────────────────────────────────── */
+      #features {
+        background: var(--white);
+      }
+
+      .feat-card {
+        background: var(--card-bg);
+        border: 1.5px solid var(--border);
+        border-radius: 1.25rem;
+        padding: clamp(1.375rem, 3vw, 2.125rem) clamp(1.125rem, 2.5vw, 1.75rem);
+        height: 100%;
+        transition:
+          transform 0.3s,
+          box-shadow 0.3s,
+          border-color 0.3s;
+        cursor: default;
+      }
+      .feat-card:hover {
+        transform: translateY(-6px);
+        box-shadow: 0 12px 40px var(--shadow);
+        border-color: var(--teal);
+      }
+      .feat-icon {
+        width: 3.25rem;
+        height: 3.25rem;
+        border-radius: 0.875rem;
+        background: var(--teal-lt);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.4rem;
+        color: var(--teal);
+        margin-bottom: 1.25rem;
+        transition: background 0.3s;
+        flex-shrink: 0;
+      }
+      .feat-card:hover .feat-icon {
+        background: var(--teal);
+        color: white;
+      }
+      .feat-title {
+        font-family: "Sora", sans-serif;
+        font-size: clamp(0.9rem, 1.5vw, 1.05rem);
+        font-weight: 700;
+        color: var(--text);
+        margin-bottom: 0.625rem;
+      }
+      .feat-text {
+        font-size: 0.88rem;
+        color: var(--muted);
+        line-height: 1.7;
+      }
+
+      /* ── HOW IT WORKS ────────────────────────────────────── */
+      #how-it-works {
+        background: var(--teal-pale);
+      }
+
+      .step-card {
+        background: white;
+        border-radius: 1.25rem;
+        padding: clamp(1.25rem, 3vw, 1.875rem) clamp(1rem, 2.5vw, 1.5rem);
+        text-align: center;
+        border: 1.5px solid var(--border);
+        height: 100%;
+        position: relative;
+        transition:
+          transform 0.3s,
+          box-shadow 0.3s;
+        cursor: default;
+        margin-top: 1.125rem;
+      }
+      .step-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 32px var(--shadow);
+      }
+      .step-num {
+        position: absolute;
+        top: -1rem;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 2.25rem;
+        height: 2.25rem;
+        border-radius: 50%;
+        background: var(--teal);
+        color: white;
+        font-family: "Sora", sans-serif;
+        font-size: 0.85rem;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 4px 12px rgba(23, 184, 176, 0.35);
+        z-index: 1;
+      }
+      .step-icon-wrap {
+        width: 3.75rem;
+        height: 3.75rem;
+        border-radius: 1rem;
+        background: var(--teal-lt);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        color: var(--teal);
+        margin: 0.5rem auto 1.125rem;
+        transition: background 0.3s;
+        flex-shrink: 0;
+      }
+      .step-card:hover .step-icon-wrap {
+        background: var(--teal);
+        color: white;
+      }
+      .step-title {
+        font-family: "Sora", sans-serif;
+        font-size: clamp(0.875rem, 1.4vw, 1rem);
+        font-weight: 700;
+        color: var(--text);
+        margin-bottom: 0.5rem;
+      }
+      .step-desc {
+        font-size: 0.85rem;
+        color: var(--muted);
+        line-height: 1.65;
+      }
+
+      .step-arrow {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--teal);
+        font-size: 1.2rem;
+        opacity: 0.5;
+        padding-top: 1rem;
+      }
+
+      /* ── EXPLORE ─────────────────────────────────────────── */
+      #explore {
+        background: var(--white);
+      }
+
+      .dest-card {
+        position: relative;
+        border-radius: 1.25rem;
+        overflow: hidden;
+        cursor: pointer;
+        aspect-ratio: 4 / 3;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        transition:
+          transform 0.35s,
+          box-shadow 0.35s;
+      }
+      .dest-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 14px 40px rgba(0, 0, 0, 0.18);
+      }
+      .dest-card img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+        transition: transform 0.5s;
+      }
+      .dest-card:hover img {
+        transform: scale(1.07);
+      }
+      .dest-overlay {
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(
+          to top,
+          rgba(10, 40, 40, 0.75) 0%,
+          rgba(10, 40, 40, 0.1) 55%,
+          transparent 100%
+        );
+      }
+      .dest-info {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        padding: clamp(0.75rem, 2vw, 1.125rem);
+      }
+      .dest-name {
+        font-family: "Sora", sans-serif;
+        font-size: clamp(1rem, 2vw, 1.25rem);
+        font-weight: 700;
+        color: white;
+      }
+      .dest-tag {
+        font-size: 0.7rem;
+        color: rgba(255, 255, 255, 0.7);
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        margin-top: 3px;
+      }
+      .dest-badge {
+        position: absolute;
+        top: 0.75rem;
+        left: 0.75rem;
+        background: rgba(255, 255, 255, 0.18);
+        backdrop-filter: blur(6px);
+        border: 1px solid rgba(255, 255, 255, 0.25);
+        font-size: 0.65rem;
+        font-weight: 600;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: white;
+        padding: 0.25rem 0.75rem;
+        border-radius: 1.25rem;
+        white-space: nowrap;
+      }
+
+      /* ── CTA ─────────────────────────────────────────────── */
+      #cta-section {
+        background: linear-gradient(135deg, var(--teal) 0%, #0f9690 100%);
+        padding: clamp(3rem, 7vh, 5rem) 0;
+      }
+      .cta-title {
+        font-family: "Sora", sans-serif;
+        font-size: clamp(1.5rem, 2.8vw, 2.6rem);
+        font-weight: 800;
+        color: white;
+        line-height: 1.2;
+      }
+      .cta-sub {
+        font-size: clamp(0.875rem, 1.3vw, 1rem);
+        color: rgba(255, 255, 255, 0.78);
+        margin-top: 0.75rem;
+      }
+      .btn-cta {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        background: white;
+        color: var(--teal-mid) !important;
+        font-size: 0.88rem;
+        font-weight: 700;
+        text-decoration: none;
+        padding: 0.875rem 2.25rem;
+        border-radius: 3.125rem;
+        box-shadow: 0 6px 24px rgba(0, 0, 0, 0.12);
+        transition:
+          transform 0.3s,
+          box-shadow 0.3s;
+        white-space: nowrap;
+      }
+      .btn-cta:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 32px rgba(0, 0, 0, 0.18);
+      }
+
+      /* ── FOOTER ──────────────────────────────────────────── */
+      footer {
+        background: var(--text);
+        padding: clamp(1.5rem, 4vh, 2.5rem) 0 1.5rem;
+      }
+      .ft-brand {
+        font-family: "Sora", sans-serif;
+        font-size: clamp(1rem, 2vw, 1.15rem);
+        font-weight: 700;
+        color: white;
+      }
+      .ft-brand span {
+        color: var(--teal);
+      }
+      .ft-tag {
+        font-size: 0.8rem;
+        color: rgba(255, 255, 255, 0.4);
+        margin-top: 4px;
+      }
+      .ft-link {
+        font-size: 0.8rem;
+        color: rgba(255, 255, 255, 0.5);
+        text-decoration: none;
+        transition: color 0.25s;
+        white-space: nowrap;
+      }
+      .ft-link:hover {
+        color: var(--teal);
+      }
+      .ft-copy {
+        font-size: 0.72rem;
+        color: rgba(255, 255, 255, 0.3);
+        border-top: 1px solid rgba(255, 255, 255, 0.08);
+        padding-top: 1.25rem;
+        margin-top: 1.75rem;
+        text-align: center;
+      }
+      .soc {
+        width: 2.25rem;
+        height: 2.25rem;
+        border-radius: 50%;
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: rgba(255, 255, 255, 0.5);
+        text-decoration: none;
+        font-size: 0.9rem;
+        transition: all 0.25s;
+        flex-shrink: 0;
+      }
+      .soc:hover {
+        border-color: var(--teal);
+        color: var(--teal);
+      }
+
+      /* ── ANIMATIONS ──────────────────────────────────────── */
+      @keyframes fadeUp {
+        from {
+          opacity: 0;
+          transform: translateY(28px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      .reveal {
+        opacity: 0;
+        transform: translateY(2rem);
+        transition:
+          opacity 0.65s ease,
+          transform 0.65s ease;
+      }
+      .reveal.show {
+        opacity: 1;
+        transform: translateY(0);
+      }
+      .rev-d1 { transition-delay: 0.1s; }
+      .rev-d2 { transition-delay: 0.2s; }
+      .rev-d3 { transition-delay: 0.3s; }
+      .rev-d4 { transition-delay: 0.4s; }
+
+      /* ── RESPONSIVE BREAKPOINTS ──────────────────────────── */
+
+      /* Large desktops / high-DPI (≥1400px) */
+      @media (min-width: 1400px) {
+        .container {
+          max-width: 1280px;
+        }
+      }
+
+      /* Tablets landscape / small laptops (991px–1199px) */
+      @media (max-width: 1199px) {
+        .travel-cards-wrap {
+          gap: 0.75rem;
+        }
+      }
+
+      /* Tablets portrait (768px–991px) */
+      @media (max-width: 991px) {
+        .travel-cards-wrap {
+          margin-top: 2.25rem;
+          grid-template-columns: repeat(4, 1fr);
+        }
+        .hero-sub {
+          max-width: 100%;
+        }
+      }
+
+      /* Mobile landscape + portrait (≤767px) */
+      @media (max-width: 767px) {
+        .hero-heading {
+          font-size: clamp(1.6rem, 8vw, 2.5rem);
+        }
+        .hero-stats {
+          gap: 1rem;
+        }
+        .hs-sep {
+          display: none;
+        }
+        .step-arrow {
+          display: none;
+        }
+        .travel-cards-wrap {
+          grid-template-columns: 1fr 1fr;
+          margin-top: 2rem;
+        }
+        .dest-card {
+          aspect-ratio: 3 / 2.5;
+        }
+        .btn-hero,
+        .btn-cta {
+          width: 100%;
+          justify-content: center;
+        }
+        .cta-title {
+          font-size: clamp(1.35rem, 6vw, 1.8rem);
+        }
+      }
+
+      /* Small phones (≤480px) */
+      @media (max-width: 480px) {
+        .hero-badge {
+          font-size: 0.65rem;
+          padding: 0.3rem 0.875rem;
+        }
+        .tc-icon {
+          width: 2.25rem;
+          height: 2.25rem;
+          font-size: 1rem;
+        }
+        .tc-name {
+          font-size: 0.7rem;
+        }
+        .feat-card,
+        .step-card {
+          padding: 1.25rem 1rem;
+        }
+      }
+
+      /* High-DPI / Retina screens */
+      @media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+        #hero {
+          background-image:
+            linear-gradient(
+              135deg,
+              rgba(10, 50, 50, 0.62) 0%,
+              rgba(10, 50, 50, 0.38) 55%,
+              rgba(10, 50, 50, 0.15) 100%
+            ),
+            url("https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=1600&q=90");
+        }
+      }
+
+      /* Reduced-motion accessibility */
+      @media (prefers-reduced-motion: reduce) {
+        *, *::before, *::after {
+          animation-duration: 0.01ms !important;
+          transition-duration: 0.01ms !important;
+        }
+      }
+    </style>
+  </head>
+  <body>
+
+   <!-- NAVBAR -->
+<nav id="navbar" class="navbar navbar-expand-lg">
+  <div class="container">
+    <a class="brand" href="#">
+      <div class="brand-dot"><i class="bi bi-send-fill"></i></div>
+      AI Trip Planner
+    </a>
+
+    <button
+      class="navbar-toggler"
+      type="button"
+      data-bs-toggle="collapse"
+      data-bs-target="#navMenu"
+      aria-label="Toggle"
+    >
+      <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div class="collapse navbar-collapse justify-content-end" id="navMenu">
+      <ul class="navbar-nav gap-1 align-items-lg-center">
+
+        <li class="nav-item">
+          <a class="nav-link" href="#hero">Home</a>
+        </li>
+
+        <li class="nav-item">
+          <a class="nav-link" href="#features">Features</a>
+        </li>
+
+        <li class="nav-item">
+          <a class="nav-link" href="#how-it-works">How It Works</a>
+        </li>
+
+        <li class="nav-item">
+          <a class="nav-link" href="#explore">Explore India</a>
+        </li>
+
+        <!-- LOGIN BUTTON -->
+        <li class="nav-item ms-lg-2">
+          <a class="nav-link login-btn" href="/login">
+            <i class="bi bi-person-circle me-1"></i> Login
+          </a>
+        </li>
+
+      </ul>
+    </div>
+  </div>
+</nav>
+
+    <!-- HERO -->
+    <section id="hero">
+      <div class="container hero-inner">
+        <div class="row align-items-center hero-row g-4">
+          <!-- Left: Text -->
+          <div class="col-lg-6 mb-5 mb-lg-0">
+            <div class="hero-badge">
+              <span class="badge-dot"></span>
+              AI-Powered Travel Planning
+            </div>
+            <h1 class="hero-heading">
+              DISCOVER THE <br />
+              <span class="line2">BEAUTY</span><br />
+              OF INDIA
+            </h1>
+            <p class="hero-sub">
+              Generate personalized AI-powered travel itineraries across India
+              based on your destination, budget and trip duration.
+            </p>
+            <a href="/planner" class="btn-hero">
+              Plan My Trip
+              <i class="bi bi-arrow-right"></i>
+            </a>
+
+
+          </div>
+
+          <!-- Right: Travel type cards -->
+          <div class="col-lg-5 offset-lg-1">
+            <div class="travel-cards-wrap">
+              <div class="tc">
+                <div class="tc-icon"><i class="bi bi-water"></i></div>
+                <div class="tc-name">Beach</div>
+              </div>
+              <div class="tc">
+                <div class="tc-icon"><i class="bi bi-tree-fill"></i></div>
+                <div class="tc-name">Nature</div>
+              </div>
+              <div class="tc">
+                <div class="tc-icon"><i class="bi bi-building"></i></div>
+                <div class="tc-name">Hotel</div>
+              </div>
+              <div class="tc">
+                <div class="tc-icon"><i class="bi bi-buildings-fill"></i></div>
+                <div class="tc-name">City</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="scroll-down">
+        <i class="bi bi-chevron-down"></i>
+        <span>Scroll</span>
+      </div>
+    </section>
+
+    <!-- FEATURES -->
+    <section id="features">
+      <div class="container">
+        <div class="text-center mb-5 reveal">
+          <span class="section-label">Why Us</span>
+          <h2 class="section-title">
+            Why Choose Our <span>AI Trip Planner</span>
+          </h2>
+          <p class="section-desc mx-auto">
+            Smart tools that help you travel smarter, budget better, and
+            experience more.
+          </p>
+        </div>
+
+        <div class="row g-4">
+          <div class="col-sm-6 col-lg-3 reveal rev-d1">
+            <div class="feat-card">
+              <div class="feat-icon"><i class="bi bi-cpu"></i></div>
+              <div class="feat-title">Smart AI Planning</div>
+              <p class="feat-text">
+                Generate intelligent itineraries based on destination, budget
+                and travel duration.
+              </p>
+            </div>
+          </div>
+          <div class="col-sm-6 col-lg-3 reveal rev-d2">
+            <div class="feat-card">
+              <div class="feat-icon"><i class="bi bi-wallet2"></i></div>
+              <div class="feat-title">Budget Friendly Trips</div>
+              <p class="feat-text">
+                Get personalized recommendations that fit your travel budget
+                perfectly.
+              </p>
+            </div>
+          </div>
+          <div class="col-sm-6 col-lg-3 reveal rev-d3">
+            <div class="feat-card">
+              <div class="feat-icon"><i class="bi bi-geo-alt-fill"></i></div>
+              <div class="feat-title">Hotels &amp; Food Suggestions</div>
+              <p class="feat-text">
+                Discover nearby hotels, restaurants and local attractions
+                instantly.
+              </p>
+            </div>
+          </div>
+          <div class="col-sm-6 col-lg-3 reveal rev-d4">
+            <div class="feat-card">
+              <div class="feat-icon">
+                <i class="bi bi-lightning-charge-fill"></i>
+              </div>
+              <div class="feat-title">Fast &amp; Personalized</div>
+              <p class="feat-text">
+                Receive a customized travel plan in just a few seconds.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- HOW IT WORKS -->
+    <section id="how-it-works">
+      <div class="container">
+        <div class="text-center mb-5 reveal">
+          <span class="section-label">The Process</span>
+          <h2 class="section-title">How It <span>Works</span></h2>
+          <p class="section-desc mx-auto">
+            Four simple steps to your perfect trip — from idea to adventure.
+          </p>
+        </div>
+
+        <div class="row g-4 align-items-stretch justify-content-center pt-3">
+          <div class="col-6 col-lg-3 reveal rev-d1">
+            <div class="step-card">
+              <div class="step-num">1</div>
+              <div class="step-icon-wrap"><i class="bi bi-geo-alt-fill"></i></div>
+              <div class="step-title">Choose Destination</div>
+              <p class="step-desc">
+                Select any city or region in India you want to explore.
+              </p>
+            </div>
+          </div>
+          <div class="col-6 col-lg-3 reveal rev-d2">
+            <div class="step-card">
+              <div class="step-num">2</div>
+              <div class="step-icon-wrap"><i class="bi bi-sliders"></i></div>
+              <div class="step-title">Set Budget &amp; Days</div>
+              <p class="step-desc">
+                Enter how many days you're going and your total budget.
+              </p>
+            </div>
+          </div>
+          <div class="col-6 col-lg-3 reveal rev-d3">
+            <div class="step-card">
+              <div class="step-num">3</div>
+              <div class="step-icon-wrap"><i class="bi bi-stars"></i></div>
+              <div class="step-title">Generate AI Trip</div>
+              <p class="step-desc">
+                Let the AI build a detailed, day-by-day itinerary for you.
+              </p>
+            </div>
+          </div>
+          <div class="col-6 col-lg-3 reveal rev-d4">
+            <div class="step-card">
+              <div class="step-num">4</div>
+              <div class="step-icon-wrap">
+                <i class="bi bi-bookmark-heart-fill"></i>
+              </div>
+              <div class="step-title">Save &amp; Explore</div>
+              <p class="step-desc">
+                Save your itinerary to your dashboard and start planning.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- EXPLORE -->
+    <section id="explore">
+      <div class="container">
+        <div class="row align-items-end mb-5">
+          <div class="col-lg-7 reveal">
+            <span class="section-label">Destinations</span>
+            <h2 class="section-title">
+              Discover India's Most<br /><span>Loved Destinations</span>
+            </h2>
+            <p class="section-desc">
+              From tropical beaches to snowy peaks — India has it all.
+            </p>
+          </div>
+        </div>
+
+        <div class="row g-4">
+          <div class="col-6 col-lg-4 reveal rev-d1">
+            <div class="dest-card">
+              <img
+                src="https://images.unsplash.com/photo-1506953823976-52e1fdc0149a?w=700&q=75"
+                alt="Goa"
+                loading="lazy"
+              />
+              <div class="dest-overlay"></div>
+              <div class="dest-badge">Popular</div>
+              <div class="dest-info">
+                <div class="dest-name">Goa</div>
+                <div class="dest-tag">Beach · Nightlife · Culture</div>
+              </div>
+            </div>
+          </div>
+          <div class="col-6 col-lg-4 reveal rev-d2">
+            <div class="dest-card">
+              <img
+                src="https://images.unsplash.com/photo-1602216056096-3b40cc0c9944?w=700&q=75"
+                alt="Kerala"
+                loading="lazy"
+              />
+              <div class="dest-overlay"></div>
+              <div class="dest-badge">Scenic</div>
+              <div class="dest-info">
+                <div class="dest-name">Kerala</div>
+                <div class="dest-tag">Backwaters · Nature · Food</div>
+              </div>
+            </div>
+          </div>
+          <div class="col-6 col-lg-4 reveal rev-d3">
+            <div class="dest-card">
+              <img
+                src="https://images.unsplash.com/photo-1598091383021-15ddea10925d?w=700&q=80"
+                alt="Kashmir"
+                loading="lazy"
+              />
+              <div class="dest-overlay"></div>
+              <div class="dest-badge">Top Pick</div>
+              <div class="dest-info">
+                <div class="dest-name">Kashmir</div>
+                <div class="dest-tag">Mountains · Snow · Serenity</div>
+              </div>
+            </div>
+          </div>
+          <div class="col-6 col-lg-4 reveal rev-d1">
+            <div class="dest-card">
+              <img
+                src="https://images.unsplash.com/photo-1477587458883-47145ed94245?w=700&q=75"
+                alt="Jaipur"
+                loading="lazy"
+              />
+              <div class="dest-overlay"></div>
+              <div class="dest-badge">Heritage</div>
+              <div class="dest-info">
+                <div class="dest-name">Jaipur</div>
+                <div class="dest-tag">Culture · Forts · Royalty</div>
+              </div>
+            </div>
+          </div>
+          <div class="col-6 col-lg-4 reveal rev-d2">
+            <div class="dest-card">
+              <img
+                src="https://images.unsplash.com/photo-1626621341517-bbf3d9990a23?w=700&q=80"
+                alt="Ladakh"
+                loading="lazy"
+              />
+              <div class="dest-overlay"></div>
+              <div class="dest-badge">Adventure</div>
+              <div class="dest-info">
+                <div class="dest-name">Ladakh</div>
+                <div class="dest-tag">High Altitude · Monks · Bikes</div>
+              </div>
+            </div>
+          </div>
+          <div class="col-6 col-lg-4 reveal rev-d3">
+            <div class="dest-card">
+              <img
+                src="https://images.unsplash.com/photo-1588083949404-c4f1ed1323b3?w=700&q=75"
+                alt="Manali"
+                loading="lazy"
+              />
+              <div class="dest-overlay"></div>
+              <div class="dest-badge">Snow</div>
+              <div class="dest-info">
+                <div class="dest-name">Manali</div>
+                <div class="dest-tag">Valleys · Trekking · Snow</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CTA -->
+    <section id="cta-section">
+      <div class="container">
+        <div class="row align-items-center text-center text-lg-start">
+          <div class="col-lg-8 mb-4 mb-lg-0 reveal">
+            <h2 class="cta-title">Ready For Your Next Adventure?</h2>
+            <p class="cta-sub">
+              Generate your personalized AI travel plan in seconds. It's free!
+            </p>
+          </div>
+          <div class="col-lg-4 text-lg-end reveal rev-d2">
+            <a href="/planner" class="btn-cta">
+              Generate My Trip
+              <i class="bi bi-arrow-right"></i>
+            </a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer>
+      <div class="container">
+        <div class="row align-items-center g-4 pb-3">
+          <div class="col-md-5">
+            <div class="ft-brand">AI <span>Trip</span> Planner</div>
+            <div class="ft-tag">Explore India Smarter · AI-Powered</div>
+          </div>
+          <div class="col-md-4 d-none d-md-flex gap-4">
+            <a href="#features" class="ft-link">Features</a>
+            <a href="#how-it-works" class="ft-link">How It Works</a>
+            <a href="#explore" class="ft-link">Explore</a>
+          </div>
+          <div class="col-md-3 d-flex gap-2 justify-content-md-end">
+            <a href="#" class="soc"><i class="bi bi-instagram"></i></a>
+            <a href="#" class="soc"><i class="bi bi-twitter-x"></i></a>
+            <a href="#" class="soc"><i class="bi bi-youtube"></i></a>
+          </div>
+        </div>
+        <div class="ft-copy">© 2025 AI Trip Planner · Built with ❤️ by SAY</div>
+      </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+      /*
+       * HERO HEIGHT FIX — set --hero-min-h to window.innerHeight in px.
+       *
+       * Why: `100vh` on desktop browsers includes the scrollbar area and on
+       * some laptops the OS scaling factor makes it render larger than the
+       * actual visible area. `window.innerHeight` is always the exact usable
+       * viewport height regardless of OS zoom, display scaling, or browser
+       * chrome — making the hero pixel-perfect on every machine.
+       *
+       * We also update on resize so rotating a phone or resizing the window
+       * always recalculates correctly.
+       */
+      function setHeroHeight() {
+        document.documentElement.style.setProperty(
+          '--hero-min-h',
+          window.innerHeight + 'px'
+        );
+      }
+      setHeroHeight();
+      window.addEventListener('resize', setHeroHeight);
+
+      // Navbar scroll state
+      window.addEventListener("scroll", () => {
+        document
+          .getElementById("navbar")
+          .classList.toggle("scrolled", scrollY > 40);
+      });
+
+      // Smooth scroll for anchor links
+      document.querySelectorAll('a[href^="#"]').forEach((a) => {
+        a.addEventListener("click", (e) => {
+          const target = document.querySelector(a.getAttribute("href"));
+          if (target) {
+            e.preventDefault();
+            target.scrollIntoView({ behavior: "smooth" });
+            const menu = document.getElementById("navMenu");
+            if (menu.classList.contains("show")) {
+              bootstrap.Collapse.getInstance(menu)?.hide();
+            }
+          }
+        });
+      });
+
+      // Scroll reveal
+      const observer = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((e) => {
+            if (e.isIntersecting) e.target.classList.add("show");
+          });
+        },
+        { threshold: 0.12 }
+      );
+      document.querySelectorAll(".reveal").forEach((el) => observer.observe(el));
+    </script>
+  </body>
+</html>

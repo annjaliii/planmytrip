@@ -1,0 +1,933 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Trip Plan – {{ city }}</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@300;400;500;600;700;800;900&family=Sora:wght@400;600;700;800&family=Poppins:wght@300;400;500;700;900&display=swap" rel="stylesheet" />
+
+    <style>
+      /* ══════════════════════════════════════
+         ROOT — same palette throughout
+         ══════════════════════════════════════ */
+      :root {
+        --teal:      #17b8b0;
+        --teal-lt:   #e6f9f8;
+        --teal-mid:  #12968f;
+        --teal-pale: #f0fdfc;
+        --text:      #1e3a3a;
+        --muted:     #5a8080;
+        --border:    #d4efed;
+        --shadow:    rgba(23,184,176,0.13);
+        --white:     #ffffff;
+        --bg:        #f5fffe;
+      }
+
+      *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+      html { scroll-behavior: smooth; }
+
+      body {
+        background: var(--bg);
+        font-family: 'Poppins', sans-serif;
+        color: #222;
+        min-height: 100vh;
+        padding-top: 58px; /* just the top navbar height */
+      }
+
+      /* ══════════════════════════════════════
+         TOP NAVBAR — matches planner.html exactly
+         ══════════════════════════════════════ */
+      #navbar {
+        position: fixed;
+        top: 0; left: 0; right: 0;
+        z-index: 1000;
+        background: rgba(255,255,255,0.92);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        box-shadow: 0 2px 20px rgba(0,0,0,0.07);
+        padding: 10px 0;
+        transition: box-shadow 0.35s;
+      }
+
+      .nav-container {
+        max-width: 1280px;
+        margin: 0 auto;
+        padding: 0 24px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+
+      /* Brand — same as planner */
+      .brand {
+        font-family: 'Sora', sans-serif;
+        font-size: 1.15rem; font-weight: 700;
+        color: var(--teal) !important;
+        text-decoration: none;
+        display: flex; align-items: center; gap: 8px;
+        transition: opacity 0.25s;
+      }
+      .brand:hover { opacity: .85; }
+      .brand-dot {
+        width: 26px; height: 26px; border-radius: 8px;
+        background: var(--teal);
+        display: flex; align-items: center; justify-content: center;
+        color: white; font-size: .75rem;
+        transition: transform 0.3s ease;
+      }
+      .brand:hover .brand-dot { transform: rotate(12deg) scale(1.1); }
+
+      /* Nav links — same as planner */
+      .nav-links {
+        display: flex; align-items: center; gap: 4px; list-style: none;
+      }
+      .nav-links a {
+        font-family: 'Nunito', sans-serif;
+        font-size: .82rem; font-weight: 600;
+        letter-spacing: .04em;
+        color: var(--text);
+        text-decoration: none;
+        padding: 6px 14px;
+        position: relative; transition: color 0.25s;
+      }
+      .nav-links a::after {
+        content: '';
+        position: absolute;
+        bottom: 2px; left: 14px; right: 14px;
+        height: 2px; background: var(--teal); border-radius: 2px;
+        transform: scaleX(0);
+        transition: transform 0.25s;
+      }
+      .nav-links a:hover::after { transform: scaleX(1); }
+      .nav-links a:hover { color: var(--teal); }
+
+      /* Login / CTA button — same as planner */
+      .nav-login-btn {
+        background: var(--teal);
+        color: white !important;
+        padding: 7px 18px !important;
+        border-radius: 30px;
+        font-size: .8rem; font-weight: 700;
+        transition: all 0.3s;
+        box-shadow: 0 5px 16px rgba(23,184,176,.25);
+        text-decoration: none;
+        display: inline-flex; align-items: center; gap: 6px;
+      }
+      .nav-login-btn::after { display: none !important; }
+      .nav-login-btn:hover {
+        background: var(--teal-mid);
+        color: white !important;
+        transform: translateY(-2px);
+      }
+
+      /* (city pill and back btn removed — not shown in navbar) */
+
+      /* Mobile toggle */
+      .nav-toggle {
+        display: none; background: none; border: none;
+        cursor: pointer; flex-direction: column; gap: 5px; padding: 4px;
+      }
+      .nav-toggle span { display: block; width: 22px; height: 2px; background: var(--teal); border-radius: 2px; }
+      .nav-mobile-menu {
+        display: none; flex-direction: column;
+        background: rgba(255,255,255,0.97);
+        backdrop-filter: blur(12px);
+        padding: 12px 20px;
+        border-top: 1px solid var(--border);
+        gap: 6px;
+      }
+      .nav-mobile-menu.open { display: flex; }
+      .nav-mobile-menu a {
+        font-family: 'Nunito', sans-serif;
+        font-size: .88rem; font-weight: 600;
+        color: var(--text); text-decoration: none;
+        padding: 8px 0; border-bottom: 1px solid var(--border);
+        transition: color .25s;
+      }
+      .nav-mobile-menu a:last-child { border-bottom: none; }
+      .nav-mobile-menu a:hover { color: var(--teal); }
+
+      @media (max-width: 900px) {
+        .nav-toggle { display: flex; }
+        .nav-links, .nav-center-group { display: none; }
+      }
+
+      /* ══════════════════════════════════════
+         SECTION SCROLL NAV (sub-navbar)
+         ══════════════════════════════════════ */
+      #sec-navbar {
+        position: fixed;
+        top: 58px; left: 0; right: 0;
+        z-index: 999;
+        background: rgba(240,253,252,0.92);
+        backdrop-filter: blur(14px);
+        -webkit-backdrop-filter: blur(14px);
+        border-bottom: 1px solid var(--border);
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+      }
+      #sec-navbar::-webkit-scrollbar { display: none; }
+      .sec-nav-inner {
+        max-width: 1280px; margin: 0 auto;
+        padding: 0 24px;
+        display: flex; align-items: stretch; gap: 0; white-space: nowrap;
+      }
+      .sec-link {
+        display: inline-flex; align-items: center; gap: 6px;
+        font-family: 'Nunito', sans-serif;
+        font-size: .76rem; font-weight: 700;
+        color: var(--muted); text-decoration: none;
+        padding: 10px 13px;
+        position: relative; transition: color 0.25s;
+        letter-spacing: .02em; flex-shrink: 0;
+      }
+      .sec-link i { font-size: .8rem; }
+      .sec-link::after {
+        content: '';
+        position: absolute;
+        bottom: 0; left: 6px; right: 6px;
+        height: 2.5px; background: var(--teal);
+        border-radius: 2px 2px 0 0;
+        transform: scaleX(0); transition: transform .25s;
+      }
+      .sec-link:hover { color: var(--teal); }
+      .sec-link:hover::after { transform: scaleX(1); }
+      .sec-link.active { color: var(--teal); }
+      .sec-link.active::after { transform: scaleX(1); }
+
+      /* ══════════════════════════════════════
+         PAGE LAYOUT — sidebar + main
+         ══════════════════════════════════════ */
+      .page-body {
+        /* top navbar (58px) + sec-navbar (~42px) */
+        padding-top: 42px;
+        max-width: 1280px;
+        margin: 0 auto;
+        padding-left: 20px;
+        padding-right: 20px;
+        display: flex;
+        gap: 22px;
+        align-items: flex-start;
+        padding-bottom: 60px;
+      }
+
+      /* ══════════════════════════════════════
+         LEFT SIDEBAR
+         ══════════════════════════════════════ */
+      .sidebar {
+        width: 240px;
+        flex-shrink: 0;
+        position: sticky;
+        top: 115px; /* below both navbars */
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+      }
+
+      /* Sidebar base card */
+      .sb-card {
+        background: var(--white);
+        border: 1.5px solid var(--border);
+        border-radius: 18px;
+        padding: 18px 16px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+        transition: box-shadow 0.3s;
+      }
+      .sb-card:hover { box-shadow: 0 6px 28px var(--shadow); }
+
+      /* Save This Trip CTA */
+      .sb-save-btn {
+        display: flex; align-items: center; justify-content: center; gap: 8px;
+        width: 100%;
+        background: linear-gradient(135deg, var(--teal), var(--teal-mid));
+        color: #fff !important;
+        font-family: 'Nunito', sans-serif;
+        font-size: .88rem; font-weight: 800;
+        text-decoration: none;
+        padding: 13px 16px;
+        border-radius: 14px;
+        border: none;
+        box-shadow: 0 6px 22px rgba(23,184,176,.32);
+        transition: transform .3s, box-shadow .3s;
+        letter-spacing: .03em;
+        cursor: pointer;
+      }
+      .sb-save-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 32px rgba(23,184,176,.45);
+        color: #fff !important;
+      }
+      .sb-save-btn i { font-size: 1rem; }
+
+      /* Trip summary inside sidebar */
+      .sb-section-label {
+        font-family: 'Nunito', sans-serif;
+        font-size: .65rem; font-weight: 700;
+        letter-spacing: .16em; text-transform: uppercase;
+        color: var(--muted); margin-bottom: 12px;
+      }
+
+      .sb-summary-item {
+        display: flex; align-items: center; gap: 10px;
+        padding: 9px 10px;
+        border-radius: 12px;
+        transition: background .25s;
+        cursor: default;
+        margin-bottom: 6px;
+      }
+      .sb-summary-item:last-child { margin-bottom: 0; }
+      .sb-summary-item:hover { background: var(--teal-pale); }
+      .sb-icon {
+        width: 34px; height: 34px; border-radius: 10px;
+        background: var(--teal-lt);
+        border: 1px solid var(--border);
+        display: flex; align-items: center; justify-content: center;
+        font-size: .9rem; color: var(--teal); flex-shrink: 0;
+        transition: background .25s;
+      }
+      .sb-summary-item:hover .sb-icon { background: var(--teal); color: white; }
+      .sb-item-label {
+        font-family: 'Nunito', sans-serif;
+        font-size: .7rem; font-weight: 600;
+        color: var(--muted); line-height: 1;
+      }
+      .sb-item-value {
+        font-family: 'Sora', sans-serif;
+        font-size: .88rem; font-weight: 700;
+        color: var(--text); line-height: 1.2; margin-top: 1px;
+      }
+
+      /* Quick nav links in sidebar */
+      .sb-nav-link {
+        display: flex; align-items: center; gap: 8px;
+        text-decoration: none;
+        font-family: 'Nunito', sans-serif;
+        font-size: .8rem; font-weight: 700;
+        color: var(--muted);
+        padding: 8px 10px;
+        border-radius: 10px;
+        transition: background .25s, color .25s;
+        margin-bottom: 2px;
+      }
+      .sb-nav-link:last-child { margin-bottom: 0; }
+      .sb-nav-link i { font-size: .85rem; color: var(--teal); }
+      .sb-nav-link:hover { background: var(--teal-pale); color: var(--teal); }
+
+      /* ══════════════════════════════════════
+         MAIN CONTENT
+         ══════════════════════════════════════ */
+      .main-content {
+        flex: 1;
+        min-width: 0; /* prevent overflow */
+        display: flex;
+        flex-direction: column;
+        gap: 18px;
+        padding-top: 6px;
+      }
+
+      .section-card,
+      .hero,
+      .register-banner {
+        background: var(--white);
+        border: 1px solid rgba(212,239,237,.6);
+        border-radius: 22px;
+        padding: 26px 28px;
+        box-shadow: 0 6px 28px rgba(0,0,0,.06);
+      }
+      .hero { text-align: center; }
+
+      /* Hero image */
+      .hero-img-wrap {
+        width: 100%; height: 280px;
+        overflow: hidden; border-radius: 16px;
+        margin-bottom: 20px; position: relative;
+      }
+      .hero-img-wrap img { width: 100%; height: 100%; object-fit: cover; }
+      .hero-img-overlay {
+        position: absolute; inset: 0;
+        background: linear-gradient(to top, rgba(0,0,0,.45), transparent);
+      }
+      .hero-img-label {
+        position: absolute; right: 14px; bottom: 14px;
+        background: rgba(255,255,255,.15);
+        backdrop-filter: blur(10px);
+        color: #fff; border-radius: 30px;
+        padding: 4px 13px; font-size: 13px; letter-spacing: 1px;
+      }
+      .hero-eyebrow {
+        color: var(--teal); font-size: 11px; font-weight: 700;
+        letter-spacing: 2px; text-transform: uppercase; margin-bottom: 6px;
+      }
+      .hero-title {
+        font-family: 'Sora', sans-serif;
+        font-size: clamp(1.8rem, 4vw, 3rem);
+        font-weight: 800; color: #111; margin-bottom: 16px;
+      }
+      .hero-badges {
+        display: flex; flex-wrap: wrap; justify-content: center; gap: 8px;
+      }
+      .hbadge {
+        background: var(--teal-pale); border: 1px solid var(--border);
+        border-radius: 30px; padding: 7px 14px;
+        font-size: 12px; font-weight: 600; color: var(--text);
+        display: flex; align-items: center; gap: 7px;
+        transition: background .25s;
+      }
+      .hbadge:hover { background: var(--teal-lt); }
+      .hbadge i { color: var(--teal); }
+
+      /* Section headers */
+      .section-label {
+        color: var(--teal); font-size: 11px; letter-spacing: 2px;
+        text-transform: uppercase; margin-bottom: 5px; font-weight: 700;
+      }
+      .section-heading {
+        font-family: 'Sora', sans-serif;
+        font-size: 1.35rem; font-weight: 800; color: #111; margin-bottom: 14px;
+      }
+      .fancy-divider { height: 1px; background: var(--border); margin: 10px 0 18px; }
+
+      /* Budget bars */
+      .budget-row { margin-bottom: 16px; }
+      .budget-meta { display: flex; justify-content: space-between; margin-bottom: 6px; }
+      .budget-name { font-weight: 600; }
+      .budget-amt { color: var(--teal); font-weight: 700; }
+      .prog-track { background: var(--teal-pale); border-radius: 30px; height: 9px; overflow: hidden; }
+      .prog-fill, .tc-bar-fill {
+        background: linear-gradient(90deg, var(--teal), var(--teal-mid));
+        height: 100%; border-radius: 30px; width: 0; transition: width 1s ease;
+      }
+
+      /* Info pills */
+      .info-pill {
+        background: var(--teal-pale); border: 1px solid var(--border);
+        border-radius: 14px; padding: 14px;
+        display: flex; align-items: center; gap: 12px; margin-bottom: 10px;
+      }
+      .info-pill i { color: var(--teal); font-size: 1.1rem; }
+
+      /* Timeline */
+      .timeline { position: relative; padding-left: 28px; }
+      .timeline::before {
+        content: ''; position: absolute; left: 5px; top: 0; bottom: 0;
+        width: 3px;
+        background: linear-gradient(to bottom, var(--teal), var(--teal-mid));
+        border-radius: 10px;
+      }
+      .tl-item { position: relative; margin-bottom: 22px; }
+      .tl-dot {
+        width: 13px; height: 13px; border-radius: 50%;
+        background: var(--teal); box-shadow: 0 0 0 3px var(--teal-lt);
+        position: absolute; left: -28px; top: 4px;
+      }
+      .tl-day { font-size: 11px; color: var(--teal); font-weight: 700; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 3px; }
+      .tl-place { font-size: 16px; font-weight: 700; color: #111; margin-bottom: 3px; }
+      .tl-food { color: #777; font-size: 13px; }
+
+      /* Place rows */
+      .place-row {
+        display: flex; gap: 14px;
+        padding: 14px 0; border-bottom: 1px solid var(--border);
+      }
+      .place-row:last-child { border-bottom: none; }
+      .place-thumb, .place-icon { width: 80px; height: 80px; border-radius: 12px; flex-shrink: 0; }
+      .place-thumb { object-fit: cover; cursor: pointer; transition: transform .3s; }
+      .place-thumb:hover { transform: scale(1.05); }
+      .place-icon { display: flex; align-items: center; justify-content: center; background: var(--teal-pale); border: 1px solid var(--border); font-size: 26px; }
+      .place-name { font-weight: 700; font-size: 15px; color: #111; margin-bottom: 4px; }
+      .place-addr { color: #777; font-size: 12px; line-height: 1.6; }
+
+      /* Register banner */
+      .register-banner {
+        background: linear-gradient(135deg, #f0fdfc 0%, #e6f9f8 60%, #f7fffe 100%);
+        border: 1.5px solid var(--border);
+        text-align: center;
+        padding: 36px 24px;
+        position: relative; overflow: hidden;
+      }
+      .register-banner::before {
+        content: '';
+        position: absolute; top: -50px; right: -50px;
+        width: 180px; height: 180px; border-radius: 50%;
+        background: radial-gradient(circle, rgba(23,184,176,.1), transparent 70%);
+        pointer-events: none;
+      }
+      .rb-icon {
+        width: 54px; height: 54px; border-radius: 16px;
+        background: var(--teal-lt); border: 1.5px solid var(--border);
+        display: flex; align-items: center; justify-content: center;
+        font-size: 1.4rem; color: var(--teal); margin: 0 auto 14px;
+      }
+      .register-banner h3 {
+        font-family: 'Sora', sans-serif;
+        font-size: clamp(1.2rem, 2.5vw, 1.6rem);
+        font-weight: 800; color: var(--text); margin-bottom: 8px; line-height: 1.2;
+      }
+      .rb-sub {
+        font-size: .88rem; color: var(--muted);
+        max-width: 340px; margin: 0 auto 22px; line-height: 1.75;
+      }
+      .btn-save-trip-main {
+        display: inline-flex; align-items: center; gap: 8px;
+        background: linear-gradient(135deg, var(--teal), var(--teal-mid));
+        color: #fff !important;
+        font-family: 'Nunito', sans-serif;
+        font-size: .88rem; font-weight: 800;
+        text-decoration: none; padding: 12px 30px;
+        border-radius: 50px;
+        box-shadow: 0 7px 22px rgba(23,184,176,.33);
+        transition: transform .3s, box-shadow .3s;
+        letter-spacing: .03em; position: relative; z-index: 1;
+      }
+      .btn-save-trip-main:hover { transform: translateY(-2px); box-shadow: 0 12px 30px rgba(23,184,176,.44); color: #fff !important; }
+
+      /* Plan another */
+      .btn-cta {
+        background: var(--teal) !important;
+        border: none !important; border-radius: 30px !important;
+        padding: 11px 26px !important; color: #fff !important;
+        font-weight: 700 !important; text-decoration: none;
+        display: inline-flex; align-items: center; gap: 7px;
+        box-shadow: 0 6px 20px rgba(23,184,176,.25); transition: .3s;
+      }
+      .btn-cta:hover { background: var(--teal-mid) !important; transform: translateY(-2px); }
+
+      .footer-note { text-align: center; color: #999; font-size: 12px; padding-bottom: 20px; }
+
+      /* Fixed back button */
+      .back-btn {
+        position: fixed; left: 16px; bottom: 20px;
+        background: var(--teal); color: #fff;
+        text-decoration: none; padding: 8px 16px;
+        border-radius: 30px; font-weight: 600; font-size: .8rem;
+        box-shadow: 0 5px 18px rgba(23,184,176,.3); z-index: 998;
+        transition: background .25s, transform .25s;
+        display: flex; align-items: center; gap: 6px;
+      }
+      .back-btn:hover { background: var(--teal-mid); transform: translateY(-2px); }
+
+      /* Lightbox */
+      #lightbox {
+        display: none; position: fixed; inset: 0;
+        background: rgba(0,0,0,.9); z-index: 9999;
+        align-items: center; justify-content: center;
+      }
+      #lightbox.active { display: flex; }
+      #lightbox-img { max-width: 90vw; max-height: 85vh; border-radius: 16px; }
+      #lightbox-close { position: absolute; top: 16px; right: 20px; color: #fff; font-size: 36px; cursor: pointer; }
+      #lightbox-caption { position: absolute; bottom: 24px; color: #fff; }
+
+      /* ══════════════════════════════════════
+         RESPONSIVE
+         ══════════════════════════════════════ */
+      @media (max-width: 960px) {
+        /* Sidebar collapses — show at top as a horizontal strip */
+        .page-body { flex-direction: column; gap: 14px; }
+        .sidebar {
+          width: 100%;
+          position: static;
+          flex-direction: row;
+          flex-wrap: wrap;
+          gap: 10px;
+        }
+        .sb-card { flex: 1; min-width: 180px; }
+        .sb-save-card { flex-basis: 100%; }
+        .sb-nav-card { display: none; } /* hide quick nav on mobile — sec-navbar covers it */
+      }
+      @media (max-width: 768px) {
+        body { padding-top: 58px; }
+        .page-body { padding: 10px 12px 48px; }
+        .hero, .section-card, .register-banner { padding: 18px 14px; }
+        .place-row { flex-direction: column; }
+        .place-thumb, .place-icon { width: 100%; height: 180px; }
+        .tn-city { display: none; }
+        .sidebar { flex-direction: column; }
+        .sb-card { min-width: 0; flex: none; width: 100%; }
+      }
+      @media (max-width: 480px) {
+        .nav-center-group { display: none; }
+      }
+    </style>
+  </head>
+  <body>
+
+    <!-- ══════ LIGHTBOX ══════ -->
+    <div id="lightbox" role="dialog" aria-modal="true" aria-label="Image preview">
+      <span id="lightbox-close" role="button" aria-label="Close" tabindex="0">&times;</span>
+      <img id="lightbox-img" src="" alt="" />
+      <div id="lightbox-caption"></div>
+    </div>
+
+    <!-- ══════════════════════════════════════
+         TOP NAVBAR — planner-matched
+         ══════════════════════════════════════ -->
+    <nav id="navbar">
+      <div class="nav-container">
+
+        <!-- Brand -->
+        <a class="brand" href="/">
+          <div class="brand-dot"><i class="bi bi-send-fill"></i></div>
+          AI Trip Planner
+        </a>
+
+        <!-- Right: nav links + login -->
+        <div class="d-flex align-items-center gap-2">
+          <ul class="nav-links d-none d-lg-flex mb-0">
+            <li><a href="/">Home</a></li>
+            <li><a href="/#features">Features</a></li>
+            <li><a href="/#how-it-works">How It Works</a></li>
+            <li><a href="/#explore">Explore India</a></li>
+          </ul>
+          <a href="/login" class="nav-login-btn">
+            <i class="bi bi-person-circle"></i> Login
+          </a>
+          <!-- Mobile toggle -->
+          <button class="nav-toggle d-lg-none" id="navToggle" aria-label="Menu">
+            <span></span><span></span><span></span>
+          </button>
+        </div>
+
+      </div>
+      <!-- Mobile menu -->
+      <div class="nav-mobile-menu" id="mobileMenu">
+        <a href="/">Home</a>
+        <a href="/#features">Features</a>
+        <a href="/#how-it-works">How It Works</a>
+        <a href="/#explore">Explore India</a>
+        <a href="/login">Login / Register</a>
+      </div>
+    </nav>
+
+    <!-- ══════════════════════════════════════
+         SECTION SCROLL NAV
+         ══════════════════════════════════════ -->
+    <nav id="sec-navbar">
+      <div class="sec-nav-inner">
+        <a class="sec-link" href="#sec-budget"><i class="bi bi-pie-chart-fill"></i> Budget</a>
+        <a class="sec-link" href="#sec-travel"><i class="bi bi-car-front-fill"></i> Travel &amp; Stay</a>
+        <a class="sec-link" href="#sec-itinerary"><i class="bi bi-calendar3"></i> Day-wise Plan</a>
+        <a class="sec-link" href="#sec-hotels"><i class="bi bi-building"></i> Hotels</a>
+        <a class="sec-link" href="#sec-restaurants"><i class="bi bi-egg-fried"></i> Restaurants</a>
+        <a class="sec-link" href="#sec-attractions"><i class="bi bi-camera-fill"></i> Places to Visit</a>
+      </div>
+    </nav>
+
+    <!-- ══════════════════════════════════════
+         PAGE BODY: SIDEBAR + MAIN
+         ══════════════════════════════════════ -->
+    <div class="page-body">
+
+      <!-- ═══ LEFT SIDEBAR ═══ -->
+      <aside class="sidebar">
+
+        <!-- 1. Save This Trip CTA -->
+        <div class="sb-card sb-save-card" style="padding: 16px;">
+          <a href="/login?next=/result" class="sb-save-btn">
+            <i class="bi bi-bookmark-fill"></i>
+            Save This Trip
+          </a>
+          <p style="font-size:.7rem; color:var(--muted); text-align:center; margin-top:10px; font-family:'Nunito',sans-serif; line-height:1.5;">
+            Log in to save &amp; access your itinerary anytime.
+          </p>
+        </div>
+
+        <!-- 2. Trip Summary -->
+        <div class="sb-card">
+          <div class="sb-section-label">Trip Summary</div>
+
+          <div class="sb-summary-item">
+            <div class="sb-icon"><i class="bi bi-geo-alt-fill"></i></div>
+            <div>
+              <div class="sb-item-label">Destination</div>
+              <div class="sb-item-value">{{ city }}</div>
+            </div>
+          </div>
+
+          <div class="sb-summary-item">
+            <div class="sb-icon"><i class="bi bi-calendar3"></i></div>
+            <div>
+              <div class="sb-item-label">Duration</div>
+              <div class="sb-item-value">{{ days }} Days</div>
+            </div>
+          </div>
+
+          <div class="sb-summary-item">
+            <div class="sb-icon"><i class="bi bi-currency-rupee"></i></div>
+            <div>
+              <div class="sb-item-label">Total Budget</div>
+              <div class="sb-item-value">₹{{ budget }}</div>
+            </div>
+          </div>
+
+          <div class="sb-summary-item">
+            <div class="sb-icon"><i class="bi bi-people-fill"></i></div>
+            <div>
+              <div class="sb-item-label">Travellers</div>
+              <div class="sb-item-value">{{ people }} People</div>
+            </div>
+          </div>
+
+          <div class="sb-summary-item">
+            <div class="sb-icon"><i class="bi bi-person-fill"></i></div>
+            <div>
+              <div class="sb-item-label">Per Person</div>
+              <div class="sb-item-value">₹{{ per_person }}</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 3. Quick Navigation -->
+        <div class="sb-card sb-nav-card">
+          <div class="sb-section-label">Quick Jump</div>
+          <a class="sb-nav-link" href="#sec-budget"><i class="bi bi-pie-chart-fill"></i> Budget</a>
+          <a class="sb-nav-link" href="#sec-hotels"><i class="bi bi-building"></i> Hotels</a>
+          <a class="sb-nav-link" href="#sec-restaurants"><i class="bi bi-egg-fried"></i> Restaurants</a>
+          <a class="sb-nav-link" href="#sec-attractions"><i class="bi bi-camera-fill"></i> Places</a>
+          <a class="sb-nav-link" href="#sec-itinerary"><i class="bi bi-calendar3"></i> Itinerary</a>
+        </div>
+
+      </aside>
+      <!-- /sidebar -->
+
+      <!-- ═══ MAIN CONTENT ═══ -->
+      <main class="main-content">
+
+        <!-- HERO -->
+        <div class="hero">
+          {% if hero_image %}
+          <div class="hero-img-wrap">
+            <img src="{{ hero_image }}" alt="{{ city }}" loading="lazy" />
+            <div class="hero-img-overlay"></div>
+            <span class="hero-img-label">📍 {{ city }}</span>
+          </div>
+          {% endif %}
+
+          <p class="hero-eyebrow">YOUR TRIP PLAN IS READY</p>
+          <h1 class="hero-title">✈ {{ city }}</h1>
+
+          <div class="hero-badges">
+            <span class="hbadge"><i class="bi bi-calendar3"></i> {{ days }} Days</span>
+            <span class="hbadge"><i class="bi bi-currency-rupee"></i> ₹{{ budget }}</span>
+            <span class="hbadge"><i class="bi bi-people-fill"></i> {{ people }} People</span>
+            <span class="hbadge"><i class="bi bi-person-fill"></i> ₹{{ per_person }}/person</span>
+          </div>
+        </div>
+
+        <!-- BUDGET -->
+        <div class="section-card" id="sec-budget">
+          <p class="section-label">Budget</p>
+          <h2 class="section-heading">Budget Distribution</h2>
+          <div class="fancy-divider"></div>
+          {% for item in breakdown %}
+          <div class="budget-row">
+            <div class="budget-meta">
+              <span class="budget-name">{{ item.name }}</span>
+              <span class="budget-amt">₹{{ item.amount }}</span>
+            </div>
+            <div class="prog-track">
+              <div class="prog-fill" data-width="{{ item.percent | int }}"></div>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+
+        <!-- TRAVEL & STAY -->
+        <div class="section-card" id="sec-travel">
+          <p class="section-label">Travel</p>
+          <h2 class="section-heading">Travel &amp; Stay</h2>
+          <div class="fancy-divider"></div>
+          <div class="info-pill">
+            <i class="bi bi-car-front-fill"></i>
+            <div>
+              <div style="font-size:12px;color:#999">Transport</div>
+              <div style="font-weight:700">{{ transport }}</div>
+            </div>
+          </div>
+          <div class="info-pill">
+            <i class="bi bi-building"></i>
+            <div>
+              <div style="font-size:12px;color:#999">Accommodation</div>
+              <div style="font-weight:700">{{ stay }}</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ITINERARY -->
+        <div class="section-card" id="sec-itinerary">
+          <p class="section-label">Itinerary</p>
+          <h2 class="section-heading">Day-wise Plan</h2>
+          <div class="fancy-divider"></div>
+          <div class="timeline">
+            {% for day in itinerary %}
+            <div class="tl-item">
+              <div class="tl-dot"></div>
+              <div class="tl-day">Day {{ day.day }}</div>
+              <div class="tl-place">{{ day.place }}</div>
+              <div class="tl-food">🍽 {{ day.food }}</div>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+
+        <!-- HOTELS -->
+        <div class="section-card" id="sec-hotels">
+          <p class="section-label">Hotels</p>
+          <h2 class="section-heading">Recommended Hotels</h2>
+          <div class="fancy-divider"></div>
+          {% for h in hotels %}
+          <div class="place-row">
+            {% if h.image %}
+            <img class="place-thumb lightbox-trigger" src="{{ h.image }}" alt="{{ h.name }}" data-caption="{{ h.name }}" />
+            {% else %}
+            <div class="place-icon">🏨</div>
+            {% endif %}
+            <div>
+              <div class="place-name">{{ h.name }}</div>
+              <div class="place-addr">{{ h.address }}</div>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+
+        <!-- RESTAURANTS -->
+        <div class="section-card" id="sec-restaurants">
+          <p class="section-label">Restaurants</p>
+          <h2 class="section-heading">Recommended Restaurants</h2>
+          <div class="fancy-divider"></div>
+          {% for r in restaurants %}
+          <div class="place-row">
+            {% if r.image %}
+            <img class="place-thumb lightbox-trigger" src="{{ r.image }}" alt="{{ r.name }}" data-caption="{{ r.name }}" />
+            {% else %}
+            <div class="place-icon">🍽</div>
+            {% endif %}
+            <div>
+              <div class="place-name">{{ r.name }}</div>
+              <div class="place-addr">{{ r.address }}</div>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+
+        <!-- ATTRACTIONS -->
+        <div class="section-card" id="sec-attractions">
+          <p class="section-label">Attractions</p>
+          <h2 class="section-heading">Places To Visit</h2>
+          <div class="fancy-divider"></div>
+          {% for a in attractions %}
+          <div class="place-row">
+            {% if a.image %}
+            <img class="place-thumb lightbox-trigger" src="{{ a.image }}" alt="{{ a.name }}" data-caption="{{ a.name }}" />
+            {% else %}
+            <div class="place-icon">📍</div>
+            {% endif %}
+            <div>
+              <div class="place-name">{{ a.name }}</div>
+              <div class="place-addr">{{ a.address }}</div>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+
+        <!-- SAVE BANNER -->
+        <div class="register-banner">
+          <div class="rb-icon"><i class="bi bi-bookmark-heart-fill"></i></div>
+          <h3>Don't Lose Your Trip ✈️</h3>
+          <p class="rb-sub">Save this itinerary to your personal dashboard and access it anytime.</p>
+          <a href="/login?next=/result" class="btn-save-trip-main">
+            <i class="bi bi-bookmark-fill"></i> Save This Trip
+          </a>
+        </div>
+
+        <!-- PLAN ANOTHER -->
+        <div class="text-center" style="padding-bottom:8px;">
+          <a href="/" class="btn-cta">
+            <i class="bi bi-arrow-counterclockwise"></i>
+            Plan Another Trip
+          </a>
+        </div>
+
+        <p class="footer-note">Generated with ❤️ · AI Trip Planner</p>
+
+      </main>
+      <!-- /main-content -->
+
+    </div><!-- /page-body -->
+
+    <!-- Fixed back button -->
+    <a href="/planner" class="back-btn">
+      <i class="bi bi-arrow-left"></i> Back
+    </a>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+      /* ── Budget progress bars ── */
+      document.addEventListener("DOMContentLoaded", () => {
+        document.querySelectorAll(".prog-fill, .tc-bar-fill").forEach(bar => {
+          const w = bar.getAttribute("data-width") || 0;
+          setTimeout(() => { bar.style.width = w + "%"; }, 300);
+        });
+      });
+
+      /* ── Lightbox ── */
+      const lightbox  = document.getElementById("lightbox");
+      const lbImg     = document.getElementById("lightbox-img");
+      const lbCaption = document.getElementById("lightbox-caption");
+      const lbClose   = document.getElementById("lightbox-close");
+
+      function openLightbox(src, caption) { lbImg.src = src; lbCaption.textContent = caption; lightbox.classList.add("active"); }
+      function closeLightbox() { lightbox.classList.remove("active"); }
+
+      document.querySelectorAll(".lightbox-trigger").forEach(img => {
+        img.addEventListener("click", () => openLightbox(img.src, img.dataset.caption || img.alt));
+      });
+      lbClose.addEventListener("click", closeLightbox);
+      lightbox.addEventListener("click", e => { if (e.target === lightbox) closeLightbox(); });
+
+      /* ── Smooth scroll for section nav ── */
+      const SCROLL_OFFSET = 108; // top-navbar + sec-navbar
+      document.querySelectorAll(".sec-link, .sb-nav-link").forEach(link => {
+        link.addEventListener("click", e => {
+          const href = link.getAttribute("href");
+          if (href && href.startsWith("#")) {
+            e.preventDefault();
+            const target = document.querySelector(href);
+            if (target) {
+              const top = target.getBoundingClientRect().top + window.scrollY - SCROLL_OFFSET;
+              window.scrollTo({ top, behavior: "smooth" });
+            }
+          }
+        });
+      });
+
+      /* ── Active section highlight ── */
+      const secLinks = document.querySelectorAll(".sec-link");
+      const sections = ["sec-budget","sec-travel","sec-itinerary","sec-hotels","sec-restaurants","sec-attractions"];
+
+      function updateActive() {
+        const y = window.scrollY + 130;
+        let current = sections[0];
+        sections.forEach(id => {
+          const el = document.getElementById(id);
+          if (el && el.offsetTop <= y) current = id;
+        });
+        secLinks.forEach(link => {
+          link.classList.toggle("active", link.getAttribute("href").replace("#","") === current);
+        });
+        const active = document.querySelector(".sec-link.active");
+        if (active) active.scrollIntoView({ inline: "nearest", block: "nearest", behavior: "smooth" });
+      }
+      window.addEventListener("scroll", updateActive, { passive: true });
+      updateActive();
+
+      /* ── Mobile nav toggle ── */
+      document.getElementById("navToggle").addEventListener("click", () => {
+        document.getElementById("mobileMenu").classList.toggle("open");
+      });
+    </script>
+  </body>
+</html>

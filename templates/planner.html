@@ -1,0 +1,605 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Plan Your Trip — AI Trip Planner</title>
+
+    <link
+      href="https://fonts.googleapis.com/css2?family=Nunito:wght@300;400;500;600;700;800;900&family=Sora:wght@400;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"
+      rel="stylesheet"
+    />
+
+    <style>
+      :root {
+        --teal: #17b8b0;
+        --teal-lt: #e6f9f8;
+        --teal-mid: #12968f;
+        --text: #1e3a3a;
+        --muted: #5a8080;
+        --border: #d4efed;
+        --shadow: rgba(23, 184, 176, 0.14);
+        --white: #ffffff;
+      }
+
+      *, *::before, *::after {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      html {
+        scroll-behavior: smooth;
+      }
+
+      body {
+        font-family: "Nunito", sans-serif;
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 68px 16px 20px;
+        overflow-x: hidden;
+        background:
+          linear-gradient(rgba(220, 245, 247, 0.84), rgba(200, 238, 240, 0.84)),
+          url("/static/images/Waves.jpg") center/cover fixed;
+      }
+
+      /* ── NAVBAR ── */
+      #navbar {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        z-index: 999;
+        background: transparent;
+        padding: 14px 0;
+        transition: background 0.35s, box-shadow 0.35s, padding 0.35s;
+      }
+      #navbar.scrolled {
+        background: rgba(255, 255, 255, 0.92);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        box-shadow: 0 2px 20px rgba(0, 0, 0, 0.07);
+        padding: 10px 0;
+      }
+
+      .nav-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 0 24px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+
+      .brand {
+        font-family: "Sora", sans-serif;
+        font-size: 1.15rem;
+        font-weight: 700;
+        color: var(--teal) !important;
+        text-decoration: none;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .brand-dot {
+        width: 26px;
+        height: 26px;
+        border-radius: 8px;
+        background: var(--teal);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 0.75rem;
+      }
+      #navbar:not(.scrolled) .brand { color: white !important; }
+      #navbar:not(.scrolled) .brand-dot { background: var(--teal); }
+
+      .nav-links {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        list-style: none;
+      }
+      .nav-links a {
+        font-family: "Nunito", sans-serif;
+        font-size: 0.85rem;
+        font-weight: 600;
+        letter-spacing: 0.04em;
+        color: var(--text);
+        text-decoration: none;
+        padding: 6px 16px;
+        position: relative;
+        transition: color 0.25s;
+      }
+      #navbar:not(.scrolled) .nav-links a { color: rgba(255,255,255,0.88); }
+      .nav-links a::after {
+        content: "";
+        position: absolute;
+        bottom: 2px;
+        left: 16px;
+        right: 16px;
+        height: 2px;
+        background: var(--teal);
+        border-radius: 2px;
+        transform: scaleX(0);
+        transition: transform 0.25s;
+      }
+      .nav-links a:hover::after { transform: scaleX(1); }
+      .nav-links a:hover { color: var(--teal) !important; }
+      .login-btn {
+  background: var(--teal);
+  color: white !important;
+  padding: 8px 18px !important;
+  border-radius: 30px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  transition: 0.3s;
+  box-shadow: 0 6px 18px rgba(23, 184, 176, 0.25);
+}
+
+.login-btn:hover {
+  background: var(--teal-mid);
+  color: white !important;
+  transform: translateY(-2px);
+}
+
+.login-btn::after {
+  display: none !important;
+}
+
+      .nav-toggle {
+        display: none;
+        background: none;
+        border: none;
+        cursor: pointer;
+        flex-direction: column;
+        gap: 5px;
+        padding: 4px;
+      }
+      .nav-toggle span {
+        display: block;
+        width: 22px;
+        height: 2px;
+        background: var(--teal);
+        border-radius: 2px;
+        transition: background 0.25s;
+      }
+      #navbar:not(.scrolled) .nav-toggle span { background: white; }
+
+      @media (max-width: 768px) {
+        .nav-toggle { display: flex; }
+        .nav-links {
+          position: fixed;
+          top: 0; left: 0; right: 0;
+          background: rgba(255,255,255,0.97);
+          backdrop-filter: blur(12px);
+          flex-direction: column;
+          align-items: center;
+          padding: 70px 24px 28px;
+          gap: 6px;
+          transform: translateY(-110%);
+          transition: transform 0.35s ease;
+          z-index: 998;
+          box-shadow: 0 4px 24px rgba(0,0,0,0.1);
+        }
+        .nav-links.open { transform: translateY(0); }
+        .nav-links a { color: var(--text) !important; font-size: 1rem; padding: 10px 24px; }
+      }
+
+      /* ── CARD ── */
+      .wrap {
+        width: 100%;
+        max-width: 470px;
+      }
+
+      .form-card {
+        background: rgba(255,255,255,0.82);
+        backdrop-filter: blur(14px);
+        -webkit-backdrop-filter: blur(14px);
+        border-radius: 22px;
+        box-shadow: 0 16px 44px rgba(0,0,0,0.1), 0 2px 8px rgba(23,184,176,0.08);
+        padding: 24px 28px 22px;
+        border: 1px solid rgba(255,255,255,0.6);
+        animation: floatBox 4s ease-in-out infinite;
+      }
+      @keyframes floatBox {
+        0%, 100% { transform: translateY(0); }
+        50%       { transform: translateY(-8px); }
+      }
+
+      /* ── CARD HEAD ── */
+      .card-head {
+        text-align: center;
+        margin-bottom: 16px;
+      }
+      .card-head .head-icon {
+        width: 46px;
+        height: 46px;
+        border-radius: 13px;
+        background: var(--teal-lt);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.3rem;
+        color: var(--teal);
+        margin: 0 auto 8px;
+      }
+      .card-head h1 {
+        font-family: "Sora", sans-serif;
+        font-size: clamp(1.3rem, 3.5vw, 1.65rem);
+        font-weight: 800;
+        color: var(--text);
+        line-height: 1.15;
+        margin-bottom: 3px;
+      }
+      .card-head p {
+        font-size: 12px;
+        color: var(--muted);
+        font-weight: 400;
+      }
+
+      /* ── LABELS ── */
+      .field-label {
+        font-family: "Nunito", sans-serif;
+        font-size: 10px;
+        font-weight: 700;
+        letter-spacing: 1.5px;
+        text-transform: uppercase;
+        color: var(--muted);
+        margin-bottom: 5px;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+      }
+      .field-label .lbl-icon { font-size: 12px; line-height: 1; }
+
+      /* ── INPUTS ── */
+      .input-icon-wrap {
+        position: relative;
+        margin-bottom: 12px;
+      }
+      .input-icon-wrap .field-prefix {
+        position: absolute;
+        left: 12px;
+        top: 50%;
+        transform: translateY(-50%);
+        font-size: 13px;
+        color: var(--teal);
+        pointer-events: none;
+        display: flex;
+        align-items: center;
+        gap: 3px;
+        font-weight: 600;
+        white-space: nowrap;
+      }
+      .input-icon-wrap.has-prefix input,
+      .input-icon-wrap.has-prefix select { padding-left: 42px; }
+      .input-icon-wrap.has-prefix.prefix-wide input { padding-left: 52px; }
+
+      .input-icon-wrap input,
+      .input-icon-wrap select {
+        width: 100%;
+        border: 1.5px solid var(--border);
+        border-radius: 12px;
+        padding: 9px 12px;
+        font-family: "Nunito", sans-serif;
+        font-size: 13px;
+        font-weight: 500;
+        color: var(--text);
+        background: rgba(255,255,255,0.7);
+        outline: none;
+        transition: border-color 0.2s, box-shadow 0.2s;
+        appearance: none;
+      }
+      .input-icon-wrap input::placeholder { color: #9ab8b4; }
+      .input-icon-wrap input:focus,
+      .input-icon-wrap select:focus {
+        border-color: var(--teal);
+        box-shadow: 0 0 0 3px rgba(23,184,176,0.12);
+        background: #fff;
+      }
+
+      /* ── THREE COL ── */
+      .three-col {
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr;
+        gap: 8px;
+        margin-bottom: 12px;
+      }
+      .field-sub-label {
+        font-size: 10px;
+        font-weight: 700;
+        letter-spacing: 1px;
+        text-transform: uppercase;
+        color: var(--muted);
+        margin-bottom: 4px;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+      }
+
+      .divider {
+        height: 1px;
+        background: var(--border);
+        margin: 4px 0 14px;
+      }
+
+      /* ── BUDGET TABS ── */
+      .budget-tabs {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 7px;
+        margin-bottom: 16px;
+      }
+      .budget-tab {
+        cursor: pointer;
+        border: 1.5px solid var(--border);
+        border-radius: 12px;
+        padding: 7px 6px;
+        text-align: center;
+        font-family: "Nunito", sans-serif;
+        font-size: 11px;
+        font-weight: 600;
+        color: var(--muted);
+        background: rgba(255,255,255,0.65);
+        transition: all 0.2s;
+        user-select: none;
+      }
+      .budget-tab .tab-icon {
+        font-size: 14px;
+        display: block;
+        margin-bottom: 1px;
+      }
+      .budget-tab:hover {
+        border-color: var(--teal);
+        color: var(--teal);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px var(--shadow);
+      }
+      .budget-tab.active {
+        background: var(--teal-lt);
+        border-color: var(--teal);
+        color: var(--teal-mid);
+        box-shadow: 0 0 0 1px var(--teal);
+      }
+
+      /* ── ERROR ── */
+      .alert-error {
+        background: #fff1f1;
+        border: 1.5px solid #fca5a5;
+        border-radius: 10px;
+        padding: 8px 12px;
+        font-size: 12px;
+        color: #dc2626;
+        display: none;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 12px;
+      }
+      .alert-error.show { display: flex; }
+
+      /* ── SUBMIT ── */
+      .btn-submit {
+        width: 100%;
+        padding: 11px;
+        border-radius: 50px;
+        border: none;
+        font-family: "Nunito", sans-serif;
+        font-weight: 800;
+        font-size: 14px;
+        background: linear-gradient(135deg, var(--teal), var(--teal-mid));
+        color: #fff;
+        cursor: pointer;
+        transition: transform 0.3s, box-shadow 0.3s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        box-shadow: 0 6px 20px rgba(23,184,176,0.35);
+        letter-spacing: 0.03em;
+      }
+      .btn-submit:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 28px rgba(23,184,176,0.45);
+      }
+
+      /* ── SPINNER ── */
+      .spinner {
+        display: none;
+        width: 14px;
+        height: 14px;
+        border: 2.5px solid rgba(255,255,255,0.4);
+        border-top-color: #fff;
+        border-radius: 50%;
+        animation: spin 0.7s linear infinite;
+      }
+      @keyframes spin { to { transform: rotate(360deg); } }
+
+      /* ── FOOTER NOTE ── */
+      .footer-note {
+        display: flex;
+        justify-content: center;
+        gap: 10px;
+        margin-top: 12px;
+        flex-wrap: wrap;
+      }
+      .footer-note span {
+        font-size: 11px;
+        color: var(--muted);
+        font-family: "Nunito", sans-serif;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        background: rgba(255,255,255,0.6);
+        border: 1px solid var(--border);
+        border-radius: 20px;
+        padding: 3px 10px;
+      }
+      .footer-note span b { color: var(--teal); }
+
+      @media (max-width: 420px) {
+        .form-card { padding: 18px 14px; }
+        .three-col { grid-template-columns: 1fr; }
+      }
+    </style>
+  </head>
+
+  <body>
+    <nav id="navbar" class="scrolled">
+      <div class="nav-container">
+        <a class="brand" href="/">
+          <div class="brand-dot"><i class="bi bi-send-fill"></i></div>
+          AI Trip Planner
+        </a>
+        <button class="nav-toggle" id="navToggle" aria-label="Menu">
+          <span></span><span></span><span></span>
+        </button>
+        <ul class="nav-links" id="navLinks">
+          <li><a href="/#home">Home</a></li>
+          <li><a href="/#features">Features</a></li>
+          <li><a href="/#works">How It Works</a></li>
+          <li><a href="/#explore">Explore India</a></li>
+          <li>
+  <a href="/login" class="login-btn">
+    <i class="bi bi-person-circle me-1"></i> Login
+  </a>
+</li>
+        </ul>
+      </div>
+    </nav>
+
+    <div class="wrap">
+      <div class="form-card">
+        <div class="card-head">
+          <div class="head-icon">
+            <i class="bi bi-send-fill"></i>
+          </div>
+          <h1>Plan Your Trip</h1>
+          <p>Smart planning for your perfect getaway</p>
+        </div>
+
+        <div class="alert-error" id="errorAlert">
+          <span>⚠</span>
+          <span id="errorMsg">Please fill all fields before submitting.</span>
+        </div>
+
+        <form action="/generate-trip" method="POST" id="tripForm" novalidate>
+          <!-- DESTINATION -->
+          <div class="field-label">
+            <span class="lbl-icon">📍</span> Destination
+          </div>
+          <div class="input-icon-wrap has-prefix">
+            <span class="field-prefix">
+              <i class="bi bi-geo-alt-fill" style="color:var(--teal);font-size:13px"></i>
+            </span>
+            <input
+              type="text"
+              name="destination"
+              placeholder="e.g. Goa, Kerala, Manali"
+              required
+            />
+          </div>
+
+          <!-- TRIP DETAILS -->
+          <div class="field-label" style="margin-bottom:8px">
+            <span class="lbl-icon"></span> Trip Details
+          </div>
+          <div class="three-col">
+            <div>
+              <div class="field-sub-label"><span>📅</span> Days</div>
+              <div class="input-icon-wrap has-prefix" style="margin-bottom:0">
+                <span class="field-prefix" style="font-size:12px"></span>
+                <input type="number" name="days" placeholder="Days" value="3" min="1" required />
+              </div>
+            </div>
+            <div>
+              <div class="field-sub-label"><span>₹</span> Budget</div>
+              <div class="input-icon-wrap has-prefix prefix-wide" style="margin-bottom:0">
+                <span class="field-prefix" style="font-size:12px;font-family:'Nunito',sans-serif"></span>
+                <input type="number" name="budget" placeholder="Budget" value="10000" min="500" required />
+              </div>
+            </div>
+            <div>
+              <div class="field-sub-label"><span>👥</span> People</div>
+              <div class="input-icon-wrap has-prefix" style="margin-bottom:0">
+                <span class="field-prefix" style="font-size:12px"></span>
+                <input type="number" name="people" placeholder="People" value="2" min="1" required />
+              </div>
+            </div>
+          </div>
+
+          <div class="divider"></div>
+
+          <!-- BUDGET TYPE -->
+          <div class="field-label" style="margin-bottom:8px">
+            <span class="lbl-icon">💰</span> Budget Type
+          </div>
+          <div class="budget-tabs">
+            <div class="budget-tab" data-value="low" onclick="selectBudget(this)">
+              <span class="tab-icon">💸</span> Low
+            </div>
+            <div class="budget-tab active" data-value="medium" onclick="selectBudget(this)">
+              <span class="tab-icon">💰</span> Medium
+            </div>
+            <div class="budget-tab" data-value="high" onclick="selectBudget(this)">
+              <span class="tab-icon">💎</span> Luxury
+            </div>
+          </div>
+
+          <input type="hidden" name="budget_type" id="budget_type_hidden" value="medium" />
+
+          <button type="submit" class="btn-submit" id="submitBtn">
+            <div class="spinner" id="btnSpinner"></div>
+            <span id="btnText">Generate My Trip </span>
+          </button>
+        </form>
+      </div>
+
+      <div class="footer-note">
+        <span><b>⚡</b> Smart budget split</span>
+        <span><b>🗺️</b> Real places via API</span>
+        <span><b>👥</b> Group-friendly</span>
+      </div>
+    </div>
+
+    <script>
+      window.addEventListener("scroll", () => {
+        document.getElementById("navbar").classList.toggle("scrolled", scrollY > 10);
+      });
+      document.getElementById("navbar").classList.add("scrolled");
+
+      document.getElementById("navToggle").addEventListener("click", () => {
+        document.getElementById("navLinks").classList.toggle("open");
+      });
+
+      function selectBudget(el) {
+        document.querySelectorAll(".budget-tab").forEach((t) => t.classList.remove("active"));
+        el.classList.add("active");
+        document.getElementById("budget_type_hidden").value = el.dataset.value;
+      }
+
+      document.getElementById("tripForm").addEventListener("submit", function (e) {
+        const dest = this.destination.value.trim();
+        if (!dest) {
+          e.preventDefault();
+          document.getElementById("errorAlert").classList.add("show");
+          return;
+        }
+        const btn = document.getElementById("submitBtn");
+        const spinner = document.getElementById("btnSpinner");
+        const txt = document.getElementById("btnText");
+        btn.disabled = true;
+        spinner.style.display = "block";
+        txt.textContent = "Generating your plan...";
+      });
+    </script>
+  </body>
+</html>
